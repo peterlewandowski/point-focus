@@ -1,0 +1,42 @@
+{
+  "name": "point-focus",
+  "version": "1.0.0",
+  "description": "A React component for zooming and focusing on image points via click, drag, or cursor.",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.cjs",
+    "scss:types": "typed-scss-modules src --includePaths src",
+    "scss:watch": "typed-scss-modules src --includePaths src --watch"
+  },
+  "dependencies": {
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0",
+    "tslib": "^2.8.1"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "rollup": "^3.29.5",
+    "rollup-plugin-dts": "^5.3.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "sass": "^1.88.0",
+    "typed-scss-modules": "^8.1.1",
+    "typescript": "^5.8.3"
+  }
+}

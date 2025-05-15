@@ -1,0 +1,30 @@
+# Node dependencies
+node_modules/
+.npm/
+
+# Build output
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*.local
+
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.sw?
+
+# SCSS typings (generated)
+src/**/*.scss.d.ts
