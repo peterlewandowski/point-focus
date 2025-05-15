@@ -11,10 +11,34 @@
       "require": "./dist/index.cjs"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rollup -c rollup.config.cjs",
     "scss:types": "typed-scss-modules src --includePaths src",
     "scss:watch": "typed-scss-modules src --includePaths src --watch"
+  },
+  "keywords": [
+    "react",
+    "image",
+    "magnifier",
+    "zoom",
+    "lens",
+    "component",
+    "tsx",
+    "image-zoom",
+    "hover-zoom"
+  ],
+  "author": "Adrian Perdomo Llerena",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aperdomoll90/point-focus.git"
+  },
+  "homepage": "https://github.com/aperdomoll90/point-focus#readme",
+  "bugs": {
+    "url": "https://github.com/aperdomoll90/point-focus/issues"
   },
   "dependencies": {
     "react": "^17.0.0 || ^18.0.0",
