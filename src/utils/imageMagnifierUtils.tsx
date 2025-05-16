@@ -30,10 +30,10 @@ export const getRatios = (bounds: { width: number; height: number }, dimensions:
   }
 }
 
-export const getScaledDimensions = (zoomImg: HTMLImageElement, zoomScale: number) => {
+export const getScaledDimensions = (zoomedImgRef: HTMLImageElement, zoomScale: number) => {
   return {
-    width: zoomImg.naturalWidth * zoomScale,
-    height: zoomImg.naturalHeight * zoomScale,
+    width: zoomedImgRef.naturalWidth * zoomScale,
+    height: zoomedImgRef.naturalHeight * zoomScale,
   }
 }
 
@@ -48,12 +48,12 @@ export const getDefaults = (): IImageTypes => {
   }
 }
 
-export const applyDragMove = (pageX: number, pageY: number, imgProps: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => {
-  let left = pageX - imgProps.current.offsets.x
-  let top = pageY - imgProps.current.offsets.y
+export const applyDragMove = (pageX: number, pageY: number, zoomContextRef: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => {
+  let left = pageX - zoomContextRef.current.offsets.x
+  let top = pageY - zoomContextRef.current.offsets.y
 
-  const maxLeft = (imgProps.current.scaledDimensions.width - imgProps.current.bounds.width) * -1
-  const maxTop = (imgProps.current.scaledDimensions.height - imgProps.current.bounds.height) * -1
+  const maxLeft = (zoomContextRef.current.scaledDimensions.width - zoomContextRef.current.bounds.width) * -1
+  const maxTop = (zoomContextRef.current.scaledDimensions.height - zoomContextRef.current.bounds.height) * -1
 
   left = Math.max(Math.min(left, 0), maxLeft)
   top = Math.max(Math.min(top, 0), maxTop)
@@ -62,7 +62,7 @@ export const applyDragMove = (pageX: number, pageY: number, imgProps: React.Muta
   setTop(top)
 }
 
-export const handleNativeDragMove = (e: MouseEvent | TouchEvent, imgProps: React.MutableRefObject<IImageTypes>, setLeft: (v: number) => void, setTop: (v: number) => void) => {
+export const handleNativeDragMove = (e: MouseEvent | TouchEvent, zoomContextRef: React.MutableRefObject<IImageTypes>, setLeft: (v: number) => void, setTop: (v: number) => void) => {
   let pageX: number
   let pageY: number
 
@@ -76,25 +76,25 @@ export const handleNativeDragMove = (e: MouseEvent | TouchEvent, imgProps: React
     return
   }
 
-  let left = pageX - imgProps.current.offsets.x
-  let top = pageY - imgProps.current.offsets.y
+  let left = pageX - zoomContextRef.current.offsets.x
+  let top = pageY - zoomContextRef.current.offsets.y
 
-  left = Math.max(Math.min(left, 0), (imgProps.current.scaledDimensions.width - imgProps.current.bounds.width) * -1)
-  top = Math.max(Math.min(top, 0), (imgProps.current.scaledDimensions.height - imgProps.current.bounds.height) * -1)
+  left = Math.max(Math.min(left, 0), (zoomContextRef.current.scaledDimensions.width - zoomContextRef.current.bounds.width) * -1)
+  top = Math.max(Math.min(top, 0), (zoomContextRef.current.scaledDimensions.height - zoomContextRef.current.bounds.height) * -1)
 
   setLeft(left)
   setTop(top)
 }
 
-export const applyMouseMove = (pageX: number, pageY: number, imgProps: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => {
-  let left = pageX - imgProps.current.offsets.x
-  let top = pageY - imgProps.current.offsets.y
+export const applyMouseMove = (pageX: number, pageY: number, zoomContextRef: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => {
+  let left = pageX - zoomContextRef.current.offsets.x
+  let top = pageY - zoomContextRef.current.offsets.y
 
-  left = Math.max(Math.min(left, imgProps.current.bounds.width), 0)
-  top = Math.max(Math.min(top, imgProps.current.bounds.height), 0)
+  left = Math.max(Math.min(left, zoomContextRef.current.bounds.width), 0)
+  top = Math.max(Math.min(top, zoomContextRef.current.bounds.height), 0)
 
-  setLeft(left * -imgProps.current.ratios.x)
-  setTop(top * -imgProps.current.ratios.y)
+  setLeft(left * -zoomContextRef.current.ratios.x)
+  setTop(top * -zoomContextRef.current.ratios.y)
 }
 
 export const initializeZoomPosition = (
@@ -102,26 +102,26 @@ export const initializeZoomPosition = (
   pageY: number,
   type: 'drag' | 'pan',
   container: HTMLDivElement | null,
-  imgProps: React.MutableRefObject<IImageTypes>,
+  zoomContextRef: React.MutableRefObject<IImageTypes>,
   setLeft: (val: number) => void,
   setTop: (val: number) => void,
-  applyDragMove: (x: number, y: number, imgProps: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => void,
-  applyMouseMove: (x: number, y: number, imgProps: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => void
+  applyDragMove: (x: number, y: number, zoomContextRef: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => void,
+  applyMouseMove: (x: number, y: number, zoomContextRef: React.MutableRefObject<IImageTypes>, setLeft: (val: number) => void, setTop: (val: number) => void) => void
 ) => {
   const bounds = getBounds(container)
-  imgProps.current.bounds = bounds
+  zoomContextRef.current.bounds = bounds
 
   if (type === 'drag') {
-    const initialPageX = (pageX - (window.pageXOffset + bounds.left)) * -imgProps.current.ratios.x
-    const initialPageY = (pageY - (window.pageYOffset + bounds.top)) * -imgProps.current.ratios.y
-    imgProps.current.offsets = getOffsets(0, 0, 0, 0)
+    const initialPageX = (pageX - (window.pageXOffset + bounds.left)) * -zoomContextRef.current.ratios.x
+    const initialPageY = (pageY - (window.pageYOffset + bounds.top)) * -zoomContextRef.current.ratios.y
+    zoomContextRef.current.offsets = getOffsets(0, 0, 0, 0)
 
-    applyDragMove(initialPageX, initialPageY, imgProps, setLeft, setTop)
+    applyDragMove(initialPageX, initialPageY, zoomContextRef, setLeft, setTop)
   } else {
     const offsets = getOffsets(window.pageXOffset, window.pageYOffset, -bounds.left, -bounds.top)
-    imgProps.current.offsets = offsets
+    zoomContextRef.current.offsets = offsets
 
-    applyMouseMove(pageX, pageY, imgProps, setLeft, setTop)
+    applyMouseMove(pageX, pageY, zoomContextRef, setLeft, setTop)
   }
 }
 

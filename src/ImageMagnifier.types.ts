@@ -1,8 +1,8 @@
 export type ImageSource = React.SourceHTMLAttributes<HTMLSourceElement>
 
 export interface IImageMagnifierTypes {
-  moveType?: 'pan' | 'drag' | undefined;
-  zoomType?: 'click' | 'hover' | undefined;
+  moveType?: 'pan' | 'drag';
+  zoomType?: 'click' | 'hover';
   src: string;
   sources?: ImageSource[];
   width?: number | undefined;
