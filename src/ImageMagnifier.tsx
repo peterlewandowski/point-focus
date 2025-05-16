@@ -37,7 +37,6 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
     afterZoomOut && afterZoomOut()
   }
 
-  // Needs to be move to Utils
   const applyImageLoad = (el: HTMLImageElement) => {
     const scaledDimensions = getScaledDimensions(el, zoomScale)
 
@@ -54,11 +53,6 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
       imgProps.current.onLoadCallback = null
     }
   }
-
-  // const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-  //   const callback = imgProps.current.onLoadCallback ?? undefined
-  //   applyImageLoad(zoomImg.current, zoomScale, containerRef.current, imgProps, callback)
-  // }
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     applyImageLoad(e.currentTarget)
@@ -167,19 +161,6 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
     }
   }
 
-  const zoomImageProps: IZoomImageTypes = {
-    src: zoomSrc || src,
-    fadeDuration: fadeDuration,
-    top,
-    left,
-    isZoomed,
-    onLoad: handleLoad,
-    onDragStart: currentMoveType === 'drag' ? handleDragStart : undefined,
-    onDragEnd: currentMoveType === 'drag' ? handleDragEnd : undefined,
-    onClose: !hideCloseButton && currentMoveType === 'drag' ? handleClose : undefined,
-    onFadeOut: isFading ? handleFadeOut : undefined,
-  }
-
   useEffect(() => {
     imgProps.current = getDefaults()
   }, [])
@@ -197,6 +178,19 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
       zoomImg.current.removeEventListener(eventType, handleNativeDragMove)
     }
   }, [isDragging, isTouch, handleDragMove])
+
+  const zoomImageProps: IZoomImageTypes = {
+    src: zoomSrc || src,
+    fadeDuration: fadeDuration,
+    top,
+    left,
+    isZoomed,
+    onLoad: handleLoad,
+    onDragStart: currentMoveType === 'drag' ? handleDragStart : undefined,
+    onDragEnd: currentMoveType === 'drag' ? handleDragEnd : undefined,
+    onClose: !hideCloseButton && currentMoveType === 'drag' ? handleClose : undefined,
+    onFadeOut: isFading ? handleFadeOut : undefined,
+  }
 
   return (
     <figure

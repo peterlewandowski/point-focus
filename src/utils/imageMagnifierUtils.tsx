@@ -125,27 +125,3 @@ export const initializeZoomPosition = (
   }
 }
 
-// TO EXTRACT LATER DID NOT WORK FIRST TIME
-
-// export const applyImageLoad = (
-//   el: HTMLImageElement | null,
-//   zoomScale: number,
-//   container: HTMLDivElement | null,
-//   imgProps: React.MutableRefObject<IImageTypes>,
-//   onLoadCallback?: () => void
-// ) => {
-//      if (!el) return
-//   const scaledDimensions = getScaledDimensions(el, zoomScale)
-
-//   el.setAttribute('width', scaledDimensions.width.toString())
-//   el.setAttribute('height', scaledDimensions.height.toString())
-
-//   imgProps.current.scaledDimensions = scaledDimensions
-//   imgProps.current.bounds = getBounds(container)
-//   imgProps.current.ratios = getRatios(imgProps.current.bounds as DOMRect, scaledDimensions)
-
-//   if (onLoadCallback) {
-//     onLoadCallback()
-//     imgProps.current.onLoadCallback = null
-//   }
-// }
