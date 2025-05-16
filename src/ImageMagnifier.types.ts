@@ -1,6 +1,6 @@
 export type ImageSource = React.SourceHTMLAttributes<HTMLSourceElement>
 
-export interface ImageMagnifierProps {
+export interface IImageMagnifierTypes {
   moveType?: 'pan' | 'drag' | undefined;
   zoomType?: 'click' | 'hover' | undefined;
   src: string;
@@ -15,8 +15,6 @@ export interface ImageMagnifierProps {
   zoomScale?: number | undefined;
   zoomPreload?: boolean | undefined;
   fadeDuration?: number | undefined;
-  fullscreenOnMobile?: boolean | undefined;
-  mobileBreakpoint?: number | undefined;
   hideCloseButton?: boolean | undefined;
   hideHint?: boolean | undefined;
   className?: string | undefined;
@@ -25,7 +23,7 @@ export interface ImageMagnifierProps {
   ref?: React.MutableRefObject<HTMLDivElement | null> | undefined;
 }
 
-export type ImgProps = {
+export type IImageTypes = {
   onLoadCallback: (() => void) | null
   bounds: DOMRect | Record<string, number>
   offsets: { x: number; y: number }
@@ -34,7 +32,7 @@ export type ImgProps = {
   scaledDimensions: { width: number; height: number }
 }
 
-export type ZoomImageProps = {
+export type IZoomImageTypes = {
   src: string
   fadeDuration: number
   top: number
@@ -47,7 +45,7 @@ export type ZoomImageProps = {
   onFadeOut?: (e: React.TransitionEvent<HTMLImageElement>) => void
 }
 
-export type ImageProps = {
+export type IBaseImageTypes = {
   src: string
   sources?: ImageSource[]
   width?: number

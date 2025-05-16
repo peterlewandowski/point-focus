@@ -1,8 +1,8 @@
 import React from 'react'
-import { ImageProps } from '../ImageMagnifier.types'
+import { IBaseImageTypes } from '../ImageMagnifier.types'
 import styles from '../styles.module.scss'
 
-const Image = ({ src, sources, width, height, hasSpacer, imgAttributes = {}, isZoomed, fadeDuration }: ImageProps) => {
+const BaseImage = ({ src, sources, width, height, hasSpacer, imgAttributes = {}, isZoomed, fadeDuration }: IBaseImageTypes) => {
   const createSpacer = width && height && hasSpacer
   const transitionDelay = `${isZoomed ? fadeDuration : 0}ms`
 
@@ -17,13 +17,11 @@ const Image = ({ src, sources, width, height, hasSpacer, imgAttributes = {}, isZ
     <div style={{ paddingTop: createSpacer ? `${(height! / width!) * 100}%` : undefined }}>
       {sources && sources.length > 0 ? (
         <picture>
-          {sources.map((source, i) =>
-            source.srcSet ? (
-              <React.Fragment key={i}>
-                <source {...source} />
-              </React.Fragment>
-            ) : null
-          )}
+          {sources
+            ?.filter(s => s.srcSet)
+            .map((source, i) => (
+              <source key={i} {...source} />
+            ))}
           <img {...imgAttributes} className={imageClass} style={imageStyle} src={src} width={width} height={height} />
         </picture>
       ) : (
@@ -33,4 +31,4 @@ const Image = ({ src, sources, width, height, hasSpacer, imgAttributes = {}, isZ
   )
 }
 
-export default Image
+export default BaseImage
