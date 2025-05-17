@@ -1,40 +1,129 @@
 import React from 'react'
-import BaseImage from './components/BaseImage'
-import ZoomImage from './components/ZoomImage'
+import { getBounds, getDefaults, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
+import { applyMouseMove, initializePanZoomPosition } from './utils/followUtils'
 import { IImageMagnifierTypes, IImageTypes, IZoomImageTypes } from './ImageMagnifier.types'
 import styles from './styles.module.scss'
-import { applyDragMove, applyMouseMove, getBounds, getDefaults, getOffsets, getPageCoords, getRatios, getScaledDimensions, handleNativeDragMove as handleNativeDragMoveUtil, initializeZoomPosition } from './utils/imageMagnifierUtils'
 
-const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, width, height, hasSpacer, imgAttributes = {}, zoomSrc, zoomScale = 1, zoomPreload, fadeDuration = 150, hideCloseButton, hideHint, className, afterZoomIn, afterZoomOut }: IImageMagnifierTypes) => {
+import BaseImage from './components/BaseImage'
+import ZoomImage from './components/ZoomImage'
+import { animateTo } from './utils/animations'
+import { animations } from './utils/animation.constants'
+
+const ImageMagnifier = ({
+  moveType = 'follow',
+  zoomType = 'click',
+  src,
+  sources,
+  width,
+  height,
+  padding,
+  hasSpacer,
+  imgAttributes = {},
+  zoomSrc,
+  zoomScale = 1,
+  zoomPreload,
+  fadeDuration = 150,
+  hideCloseButton,
+  hideHint,
+  className,
+  afterZoomIn,
+  afterZoomOut,
+}: IImageMagnifierTypes) => {
   const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const closeButtonRef = React.useRef<HTMLButtonElement | null>(null)
   const zoomedImgRef = React.useRef<HTMLImageElement | null>(null)
-  const zoomContextRef = React.useRef<IImageTypes>({
-    onLoadCallback: null,
-    bounds: {} as DOMRect,
-    offsets: { x: 0, y: 0 },
-    ratios: { x: 0, y: 0 },
-    eventPosition: { x: 0, y: 0 },
-    scaledDimensions: { width: 0, height: 0 },
-  })
+  const zoomContextRef = React.useRef<IImageTypes>(getDefaults())
+
   const [isActive, setIsActive] = React.useState<boolean | undefined>(zoomPreload)
-  const [isTouch, setIsTouch] = React.useState<boolean>(false)
   const [isZoomed, setIsZoomed] = React.useState<boolean>(false)
   const [isDragging, setIsDragging] = React.useState<boolean>(false)
-  const [isValidDrag, setIsValidDrag] = React.useState<boolean>(false)
   const [isFading, setIsFading] = React.useState<boolean>(false)
-  const [currentMoveType, setCurrentMoveType] = React.useState<'pan' | 'drag'>(moveType)
   const [left, setLeft] = React.useState<number>(0)
   const [top, setTop] = React.useState<number>(0)
 
   const zoomIn = (pageX: number, pageY: number) => {
     setIsZoomed(true)
-    initializeZoomPosition(pageX, pageY, currentMoveType, containerRef.current, zoomContextRef, setLeft, setTop, applyDragMove, applyMouseMove)
+    initializePanZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop)
     afterZoomIn && afterZoomIn()
   }
 
   const zoomOut = () => {
     setIsZoomed(false)
     afterZoomOut && afterZoomOut()
+  }
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isZoomed) return
+
+    // Mouse event
+    if ('clientX' in e && 'clientY' in e) {
+      setIsDragging(true)
+      zoomContextRef.current.dragStartCoords = {
+        x: e.clientX - left,
+        y: e.clientY - top,
+      }
+    }
+
+    if ('touches' in e && e.touches.length === 1) {
+      setIsDragging(true)
+      const touch = e.touches[0]
+      zoomContextRef.current.dragStartCoords = {
+        x: touch.clientX - left,
+        y: touch.clientY - top,
+      }
+    }
+  }
+
+  const handleDragMove = (e: MouseEvent) => {
+    if (!isDragging) return
+
+    zoomContextRef.current.wasDragging = true
+
+    // Retrieve dragStartCoords from zoomContextRef
+    const { x: offsetX, y: offsetY } = zoomContextRef.current.dragStartCoords
+
+    // Calculate new position using the stored offset
+    let newLeft = e.clientX - offsetX
+    let newTop = e.clientY - offsetY
+
+    // Clamp to bounds
+    const { width, height } = zoomContextRef.current.bounds
+    const maxLeft = 0
+    const minLeft = width * -zoomContextRef.current.ratios.x
+    const maxTop = 0
+    const minTop = height * -zoomContextRef.current.ratios.y
+
+    newLeft = Math.max(Math.min(newLeft, maxLeft), minLeft)
+    newTop = Math.max(Math.min(newTop, maxTop), minTop)
+
+    setLeft(newLeft)
+    setTop(newTop)
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    zoomContextRef.current.dragStartCoords = { x: 0, y: 0 }
+
+    // Calculate clamped (in-bounds) position
+    const { width, height } = zoomContextRef.current.bounds
+    const maxLeft = 0
+    const minLeft = width * -zoomContextRef.current.ratios.x
+    const maxTop = 0
+    const minTop = height * -zoomContextRef.current.ratios.y
+
+    const clampedLeft = Math.max(Math.min(left, maxLeft), minLeft)
+    const clampedTop = Math.max(Math.min(top, maxTop), minTop)
+
+    if (left !== clampedLeft || top !== clampedTop) {
+      animateTo(
+        { left, top },
+        { left: clampedLeft, top: clampedTop },
+        300, // duration in ms
+        animations.easeOut, // or any easing you like
+        setLeft,
+        setTop
+      )
+    }
   }
 
   const applyImageLoad = (el: HTMLImageElement) => {
@@ -58,33 +147,23 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
     applyImageLoad(e.currentTarget)
   }
 
-  const handleClose = (e: any) => {
-    if (!(!isTouch && e.target.classList.contains('c-point-focus__close'))) {
-      if (!isZoomed || !fadeDuration) {
-        handleFadeOut({}, true)
-      } else {
-        setIsFading(true)
-      }
-    }
-
+  const handleClose = (e: React.MouseEvent | React.TouchEvent) => {
     zoomOut()
   }
 
   const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
-    if (isZoomed) {
-      if (isTouch) {
-        hideCloseButton && handleClose(e)
-      } else {
-        !isValidDrag && zoomOut()
-      }
+    if (zoomContextRef.current.wasDragging) {
+      zoomContextRef.current.wasDragging = false
       return
     }
 
-    isTouch && setIsActive(true)
+    if (isZoomed) {
+      zoomOut()
+      return
+    }
 
     if (zoomedImgRef.current) {
       applyImageLoad(zoomedImgRef.current)
-
       const { x, y } = getPageCoords(e)
       zoomIn(x, y)
     } else {
@@ -94,7 +173,6 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
   }
 
   const handleMouseEnter = (e: React.MouseEvent) => {
-    console.log('handleMouseEnter')
     setIsActive(true)
     setIsFading(false)
     if (zoomType === 'hover' && !isZoomed) {
@@ -103,82 +181,42 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    applyMouseMove(e.pageX, e.pageY, zoomContextRef, setLeft, setTop)
+    if (moveType === 'follow' && isZoomed) {
+      applyMouseMove(e.pageX, e.pageY, zoomContextRef, setLeft, setTop)
+    }
   }
 
   const handleMouseLeave = (e: React.MouseEvent) => {
-    currentMoveType === 'drag' && isZoomed ? handleDragEnd(e) : handleClose(e)
-  }
-
-  const handleTouchStart = () => {
-    setIsTouch(true)
-    setCurrentMoveType('drag')
-  }
-
-  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    const { x: pageX, y: pageY } = getPageCoords(e)
-
-    zoomContextRef.current.offsets = getOffsets(pageX, pageY, zoomedImgRef.current?.offsetLeft ?? 0, zoomedImgRef.current?.offsetTop ?? 0)
-
-    setIsDragging(true)
-
-    if (!isTouch) {
-      zoomContextRef.current.eventPosition = { x: pageX, y: pageY }
-    }
-  }
-
-  const handleDragMove = React.useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation()
-    const { x: pageX, y: pageY } = getPageCoords(e)
-    applyDragMove(pageX, pageY, zoomContextRef, setLeft, setTop)
-  }, [])
-
-  const handleNativeDragMove = React.useCallback((e: MouseEvent | TouchEvent) => {
-    handleNativeDragMoveUtil(e, zoomContextRef, setLeft, setTop)
-  }, [])
-
-  const handleDragEnd = (e: React.MouseEvent | React.TouchEvent) => {
-    setIsDragging(false)
-
-    if (!isTouch && 'pageX' in e) {
-      // This function checks the distance between mousedown and mouseup and if it's greater than 5px, it considers it as a drag and not a click and it sets isValidDrag to true 
-      const moveX = Math.abs(e.pageX - zoomContextRef.current.eventPosition.x)
-      const moveY = Math.abs(e.pageY - zoomContextRef.current.eventPosition.y)
-      setIsValidDrag(moveX > 5 || moveY > 5)
-    }
+    handleClose(e)
   }
 
   const handleFadeOut = (e: any, noTransition?: boolean) => {
     if (noTransition || (e.propertyName === 'opacity' && containerRef?.current?.contains(e.target))) {
-      if ((zoomPreload && isTouch) || !zoomPreload) {
+      if (!zoomPreload) {
         zoomedImgRef.current = null
         zoomContextRef.current = getDefaults()
         setIsActive(false)
       }
 
-      setIsTouch(false)
-      setCurrentMoveType(moveType)
       setIsFading(false)
     }
   }
 
+  // possibly extra to be removed
   React.useEffect(() => {
     zoomContextRef.current = getDefaults()
   }, [])
 
   React.useEffect(() => {
-    if (!zoomedImgRef.current) {
-      return
-    }
-
-    const eventType = isTouch ? 'touchmove' : 'mousemove'
-
     if (isDragging) {
-      zoomedImgRef.current.addEventListener(eventType, handleNativeDragMove, { passive: true })
-    } else {
-      zoomedImgRef.current.removeEventListener(eventType, handleNativeDragMove)
+      window.addEventListener('mousemove', handleDragMove)
+      window.addEventListener('mouseup', handleDragEnd)
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove)
+        window.removeEventListener('mouseup', handleDragEnd)
+      }
     }
-  }, [isDragging, isTouch, handleDragMove])
+  }, [isDragging])
 
   const zoomImageProps: IZoomImageTypes = {
     src: zoomSrc || src,
@@ -187,10 +225,11 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
     left,
     isZoomed,
     onLoad: handleLoad,
-    onDragStart: currentMoveType === 'drag' ? handleDragStart : undefined,
-    onDragEnd: currentMoveType === 'drag' ? handleDragEnd : undefined,
-    onClose: !hideCloseButton && currentMoveType === 'drag' ? handleClose : undefined,
+    onDragStart: moveType === 'drag' ? handleDragStart : undefined,
+    onDragEnd: moveType === 'drag' ? handleDragEnd : undefined,
+    onClose: !hideCloseButton ? handleClose : undefined,
     onFadeOut: isFading ? handleFadeOut : undefined,
+    closeButtonRef: closeButtonRef,
   }
 
   const containerClass = [styles['c-point-focus'], className].filter(Boolean).join(' ')
@@ -199,20 +238,26 @@ const ImageMagnifier = ({ moveType = 'pan', zoomType = 'click', src, sources, wi
     <figure
       role='group'
       ref={containerRef}
-      data-movetype={currentMoveType}
-      aria-label='Zoomable image'
+      data-movetype={moveType}
+      aria-label='Zoom image Container'
       className={containerClass}
-      style={{ width: width, height: height }}
-      onTouchStart={isZoomed ? undefined : handleTouchStart}
+      style={{ width: width, height: height, padding: padding }}
       onClick={handleClick}
-      onMouseEnter={isTouch ? undefined : handleMouseEnter}
-      onMouseMove={currentMoveType === 'drag' || !isZoomed ? undefined : handleMouseMove}
-      onMouseLeave={isTouch ? undefined : handleMouseLeave}>
-      <BaseImage src={src} sources={sources} width={width} height={height} hasSpacer={hasSpacer} imgAttributes={imgAttributes} fadeDuration={fadeDuration} isZoomed={isZoomed} />
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={isZoomed ? handleMouseMove : undefined}
+      onMouseLeave={handleMouseLeave}>
+      <BaseImage
+        src={src}
+        sources={sources}
+        width={width}
+        height={height}
+        hasSpacer={hasSpacer}
+        imgAttributes={imgAttributes}
+        fadeDuration={fadeDuration}
+        isZoomed={isZoomed}
+      />
 
       {isActive && <ZoomImage ref={zoomedImgRef} {...zoomImageProps} />}
-
-      {!hideHint && !isZoomed && <span className={`${styles['c-point-focus__btn']} ${styles['c-point-focus__hint']}`} aria-hidden='true' />}
     </figure>
   )
 }
