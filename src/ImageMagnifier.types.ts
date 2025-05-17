@@ -1,34 +1,40 @@
 export type ImageSource = React.SourceHTMLAttributes<HTMLSourceElement>
 
 export interface IImageMagnifierTypes {
-  moveType?: 'pan' | 'drag';
-  zoomType?: 'click' | 'hover';
-  src: string;
-  sources?: ImageSource[];
-  width?: number | undefined;
-  height?: number | undefined;
-  hasSpacer?: boolean | undefined;
-  imgAttributes?: React.ImgHTMLAttributes<HTMLImageElement> & {
-    [key: `data-${string}`]: unknown;
-  } | undefined;
-  zoomSrc?: string | undefined;
-  zoomScale?: number | undefined;
-  zoomPreload?: boolean | undefined;
-  fadeDuration?: number | undefined;
-  hideCloseButton?: boolean | undefined;
-  hideHint?: boolean | undefined;
-  className?: string | undefined;
-  afterZoomIn?: (() => void) | undefined;
-  afterZoomOut?: (() => void) | undefined;
-  ref?: React.MutableRefObject<HTMLDivElement | null> | undefined;
+  moveType?: 'follow' | 'drag' | 'pinch'
+  zoomType?: 'click' | 'hover'
+  buttonScale?: number
+  src: string
+  sources?: ImageSource[]
+  width?: number | undefined
+  height?: number | undefined
+  padding?: number | undefined
+  hasSpacer?: boolean | undefined
+  imgAttributes?:
+    | (React.ImgHTMLAttributes<HTMLImageElement> & {
+        [key: `data-${string}`]: unknown
+      })
+    | undefined
+  zoomSrc?: string | undefined
+  zoomScale?: number | undefined
+  zoomPreload?: boolean | undefined
+  fadeDuration?: number | undefined
+  hideCloseButton?: boolean | undefined
+  hideHint?: boolean | undefined
+  className?: string | undefined
+  afterZoomIn?: (() => void) | undefined
+  afterZoomOut?: (() => void) | undefined
+  ref?: React.MutableRefObject<HTMLDivElement | null> | undefined
 }
+
+type ICoordinateObject = { x: number; y: number }
 
 export type IImageTypes = {
   onLoadCallback: (() => void) | null
   bounds: DOMRect | Record<string, number>
-  offsets: { x: number; y: number }
-  ratios: { x: number; y: number }
-  eventPosition: { x: number; y: number }
+  offsets: ICoordinateObject
+  ratios: ICoordinateObject
+  eventPosition: ICoordinateObject
   scaledDimensions: { width: number; height: number }
 }
 
@@ -39,10 +45,9 @@ export type IZoomImageTypes = {
   left: number
   isZoomed: boolean
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void
-  onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void
-  onDragEnd?: (e: React.MouseEvent | React.TouchEvent) => void
   onClose?: (e: React.MouseEvent) => void
   onFadeOut?: (e: React.TransitionEvent<HTMLImageElement>) => void
+  closeButtonRef: React.RefObject<HTMLButtonElement>
 }
 
 export type IBaseImageTypes = {
