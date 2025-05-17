@@ -23,12 +23,6 @@ export const getRatios = (bounds: { width: number; height: number }, dimensions:
   }
 }
 
-export const getScaledDimensions = (zoomedImgRef: HTMLImageElement, zoomScale: number) => {
-  return {
-    width: zoomedImgRef.naturalWidth * zoomScale,
-    height: zoomedImgRef.naturalHeight * zoomScale,
-  }
-}
 
 export const getDefaults = (): IImageTypes => {
   const defaultCoordinates = { x: 0, y: 0 }

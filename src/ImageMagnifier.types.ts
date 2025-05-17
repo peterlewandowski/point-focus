@@ -42,6 +42,7 @@ export type IImageTypes = {
 
 export type IZoomImageTypes = {
   src: string
+  zoomLevel: number
   fadeDuration: number
   top: number
   left: number

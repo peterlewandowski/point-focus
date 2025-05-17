@@ -1,6 +1,6 @@
 import React from 'react'
-import { getBounds, getDefaults, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
-import { applyMouseMove, initializePanZoomPosition } from './utils/followUtils'
+import { getBounds, getDefaults, getPageCoords, getRatios } from './utils/globalUtils'
+import { applyMouseMove, initializeFollowZoomPosition } from './utils/followUtils'
 import { IImageMagnifierTypes, IImageTypes, IZoomImageTypes } from './ImageMagnifier.types'
 import styles from './styles.module.scss'
 
@@ -38,12 +38,14 @@ const ImageMagnifier = ({
   const [isZoomed, setIsZoomed] = React.useState<boolean>(false)
   const [isDragging, setIsDragging] = React.useState<boolean>(false)
   const [isFading, setIsFading] = React.useState<boolean>(false)
+  const [zoomLevel, setZoomLevel] = React.useState<number>(0)
   const [left, setLeft] = React.useState<number>(0)
   const [top, setTop] = React.useState<number>(0)
 
   const zoomIn = (pageX: number, pageY: number) => {
     setIsZoomed(true)
-    initializePanZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop)
+    setZoomLevel(zoomScale)
+    initializeFollowZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop, zoomLevel)
     afterZoomIn && afterZoomIn()
   }
 
@@ -127,15 +129,13 @@ const ImageMagnifier = ({
   }
 
   const applyImageLoad = (el: HTMLImageElement) => {
-    const scaledDimensions = getScaledDimensions(el, zoomScale)
-
     zoomedImgRef.current = el
-    zoomedImgRef.current.setAttribute('width', scaledDimensions.width.toString())
-    zoomedImgRef.current.setAttribute('height', scaledDimensions.height.toString())
+    const rect = el.getBoundingClientRect()
+    const displayedDimensions = { width: rect.width, height: rect.height }
 
-    zoomContextRef.current.scaledDimensions = scaledDimensions
+    zoomContextRef.current.scaledDimensions = displayedDimensions
     zoomContextRef.current.bounds = getBounds(containerRef.current)
-    zoomContextRef.current.ratios = getRatios(zoomContextRef.current.bounds as { width: number; height: number }, scaledDimensions)
+    zoomContextRef.current.ratios = getRatios(zoomContextRef.current.bounds as { width: number; height: number }, displayedDimensions)
 
     if (zoomContextRef.current.onLoadCallback) {
       zoomContextRef.current.onLoadCallback()
@@ -144,7 +144,9 @@ const ImageMagnifier = ({
   }
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    applyImageLoad(e.currentTarget)
+    const rect = e.currentTarget.getBoundingClientRect()
+    const displayedDimensions = { width: rect.width, height: rect.height }
+    zoomContextRef.current.scaledDimensions = displayedDimensions
   }
 
   const handleClose = (e: React.MouseEvent | React.TouchEvent) => {
@@ -182,7 +184,7 @@ const ImageMagnifier = ({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (moveType === 'follow' && isZoomed) {
-      applyMouseMove(e.pageX, e.pageY, zoomContextRef, setLeft, setTop)
+      applyMouseMove(e.pageX, e.pageY, zoomContextRef, setLeft, setTop, zoomLevel)
     }
   }
 
@@ -220,6 +222,7 @@ const ImageMagnifier = ({
 
   const zoomImageProps: IZoomImageTypes = {
     src: zoomSrc || src,
+    zoomLevel: zoomLevel,
     fadeDuration: fadeDuration,
     top,
     left,
