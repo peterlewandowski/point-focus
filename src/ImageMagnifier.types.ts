@@ -36,8 +36,11 @@ export type IImageTypes = {
   ratios: ICoordinateObject
   eventPosition: ICoordinateObject
   scaledDimensions: { width: number; height: number }
-  dragStartCoords: ICoordinateObject
   wasDragging: boolean
+  velocity: { vx: number; vy: number } | null
+  dragStartCoords: ICoordinateObject
+  prevDragCoords: { x: number; y: number; time: number } | null
+  lastDragCoords: { x: number; y: number; time: number } | null
 }
 
 export type IZoomImageTypes = {

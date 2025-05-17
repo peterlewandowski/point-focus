@@ -13,7 +13,7 @@ export const getOffsets = (pageX: number, pageY: number, left: number, top: numb
 })
 
 export const getBounds = (container: HTMLDivElement | null): DOMRect | { width: number; height: number; left: number; top: number } => {
-   return container ? container.getBoundingClientRect() :  { width: 0, height: 0, left: 0, top: 0 }
+  return container ? container.getBoundingClientRect() : { width: 0, height: 0, left: 0, top: 0 }
 }
 
 export const getRatios = (bounds: { width: number; height: number }, dimensions: { width: number; height: number }) => {
@@ -41,5 +41,8 @@ export const getDefaults = (): IImageTypes => {
     scaledDimensions: { width: 0, height: 0 },
     dragStartCoords: defaultCoordinates,
     wasDragging: false,
+    velocity: { vx: 0, vy: 0 },
+    prevDragCoords: { x: 0, y: 0, time: 0 },
+    lastDragCoords: { x: 0, y: 0, time: 0 },
   }
 }

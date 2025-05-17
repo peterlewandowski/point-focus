@@ -1,26 +1,56 @@
-export function animateTo(
-  start: { left: number; top: number },
-  end: { left: number; top: number },
-  duration: number,
-  easing: (t: number) => number,
-  setLeft: (val: number) => void,
-  setTop: (val: number) => void,
-  onDone?: () => void
-) {
-  const startTime = performance.now()
+type InertiaOptions = {
+  initialLeft: number
+  initialTop: number
+  velocity: { vx: number; vy: number }
+  setLeft: (left: number) => void
+  setTop: (top: number) => void
+  bounds: { minLeft: number; maxLeft: number; minTop: number; maxTop: number }
+  friction?: number
+  minVelocity?: number
+  onEnd?: () => void
+}
 
-  function step(now: number) {
-    const elapsed = now - startTime
-    const t = Math.min(1, elapsed / duration)
-    const eased = easing(t)
+export function startInertia({
+  initialLeft,
+  initialTop,
+  velocity,
+  setLeft,
+  setTop,
+  bounds,
+  friction = 0.95,
+  minVelocity = 10,
+  onEnd,
+}: InertiaOptions) {
+  let left = initialLeft
+  let top = initialTop
+  let vx = velocity.vx
+  let vy = velocity.vy
 
-    setLeft(start.left + (end.left - start.left) * eased)
-    setTop(start.top + (end.top - start.top) * eased)
+  function clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(value, max))
+  }
 
-    if (t < 1) {
+  function step() {
+    vx *= friction
+    vy *= friction
+
+    left += vx * (1 / 60)
+    top += vy * (1 / 60)
+
+    // Clamp to bounds
+    left = clamp(left, bounds.minLeft, bounds.maxLeft)
+    top = clamp(top, bounds.minTop, bounds.maxTop)
+
+    setLeft(left)
+    setTop(top)
+
+    if (Math.abs(vx) > minVelocity || Math.abs(vy) > minVelocity) {
       requestAnimationFrame(step)
     } else {
-      onDone && onDone()
+      // Snap to bounds one last time, if needed
+      setLeft(clamp(left, bounds.minLeft, bounds.maxLeft))
+      setTop(clamp(top, bounds.minTop, bounds.maxTop))
+      if (onEnd) onEnd()
     }
   }
 
