@@ -36,6 +36,8 @@ export type IImageTypes = {
   ratios: ICoordinateObject
   eventPosition: ICoordinateObject
   scaledDimensions: { width: number; height: number }
+  dragStartCoords: ICoordinateObject
+  wasDragging: boolean
 }
 
 export type IZoomImageTypes = {
@@ -48,6 +50,8 @@ export type IZoomImageTypes = {
   onClose?: (e: React.MouseEvent) => void
   onFadeOut?: (e: React.TransitionEvent<HTMLImageElement>) => void
   closeButtonRef: React.RefObject<HTMLButtonElement>
+  onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void | undefined
+  onDragEnd?: (e: React.MouseEvent | React.TouchEvent) => void | undefined
 }
 
 export type IBaseImageTypes = {

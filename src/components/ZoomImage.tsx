@@ -4,7 +4,7 @@ import styles from '../styles.module.scss'
 import { CloseIcon } from '../assets/CloseIcon'
 
 const ZoomImage = React.forwardRef<HTMLImageElement, IZoomImageTypes>(
-  ({ src, fadeDuration, top, left, isZoomed, onLoad, onClose, onFadeOut, closeButtonRef }, ref) => {
+  ({ src, fadeDuration, top, left, isZoomed, onLoad, onDragStart, onDragEnd, onClose, onFadeOut, closeButtonRef }, ref) => {
     //Add custom class
     const zoomImgClass = [styles['c-point-focus__zoom-img']].filter(Boolean).join(' ')
     const closeBtnClass = [styles['c-point-focus__button']].filter(Boolean).join(' ')
@@ -21,8 +21,10 @@ const ZoomImage = React.forwardRef<HTMLImageElement, IZoomImageTypes>(
           }}
           src={src}
           onLoad={onLoad}
+          onMouseDown={onDragStart}
+          onMouseUp={onDragEnd}
           onTransitionEnd={onFadeOut}
-          draggable='false'
+          draggable={false}
           alt=''
         />
 

@@ -31,12 +31,15 @@ export const getScaledDimensions = (zoomedImgRef: HTMLImageElement, zoomScale: n
 }
 
 export const getDefaults = (): IImageTypes => {
+  const defaultCoordinates = { x: 0, y: 0 }
   return {
     onLoadCallback: null,
     bounds: { width: 0, height: 0, left: 0, top: 0 },
-    offsets: { x: 0, y: 0 },
-    ratios: { x: 0, y: 0 },
-    eventPosition: { x: 0, y: 0 },
+    offsets: defaultCoordinates,
+    ratios: defaultCoordinates,
+    eventPosition: defaultCoordinates,
     scaledDimensions: { width: 0, height: 0 },
+    dragStartCoords: defaultCoordinates,
+    wasDragging: false,
   }
 }
