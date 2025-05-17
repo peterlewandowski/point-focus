@@ -1,6 +1,6 @@
 import React from 'react'
 import { getBounds, getDefaults, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
-import { applyMouseMove, initializePanZoomPosition } from './utils/panUtils'
+import { applyMouseMove, initializePanZoomPosition } from './utils/followUtils'
 import { IImageMagnifierTypes, IImageTypes, IZoomImageTypes } from './ImageMagnifier.types'
 import styles from './styles.module.scss'
 
