@@ -1,6 +1,6 @@
 import React from 'react'
 import { getBounds, getDefaults, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
-import { applyMouseMove, initializePanZoomPosition } from './utils/followUtils'
+import { applyMouseMove, initializeFollowZoomPosition } from './utils/followUtils'
 import { IImageMagnifierTypes, IImageTypes, IZoomImageTypes } from './ImageMagnifier.types'
 import styles from './styles.module.scss'
 
@@ -42,7 +42,7 @@ const ImageMagnifier = ({
 
   const zoomIn = (pageX: number, pageY: number) => {
     setIsZoomed(true)
-    initializePanZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop)
+    initializeFollowZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop)
     afterZoomIn && afterZoomIn()
   }
 

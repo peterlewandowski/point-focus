@@ -18,7 +18,7 @@ export const applyMouseMove = (
   setTop(top * -zoomContextRef.current.ratios.y)
 }
 
-export const initializePanZoomPosition = (
+export const initializeFollowZoomPosition = (
   pageX: number,
   pageY: number,
   container: HTMLDivElement | null,
@@ -26,6 +26,16 @@ export const initializePanZoomPosition = (
   setLeft: (val: number) => void,
   setTop: (val: number) => void
 ) => {
+  // SSR check: only run if window and container are available
+  if (typeof window === 'undefined' || !container) {
+    // Optionally, set defaults or skip
+    zoomContextRef.current.bounds = { left: 0, top: 0, width: 0, height: 0 }
+    zoomContextRef.current.offsets = { x: 0, y: 0 }
+    setLeft(0)
+    setTop(0)
+    return
+  }
+
   const bounds = getBounds(container)
   zoomContextRef.current.bounds = bounds
 
