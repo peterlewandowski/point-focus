@@ -8,8 +8,6 @@ export interface IImageMagnifierTypes {
   sources?: ImageSource[]
   width?: number | undefined
   height?: number | undefined
-  padding?: number | undefined
-  hasSpacer?: boolean | undefined
   imgAttributes?:
     | (React.ImgHTMLAttributes<HTMLImageElement> & {
         [key: `data-${string}`]: unknown
@@ -20,7 +18,6 @@ export interface IImageMagnifierTypes {
   zoomPreload?: boolean | undefined
   fadeDuration?: number | undefined
   hideCloseButton?: boolean | undefined
-  hideHint?: boolean | undefined
   className?: string | undefined
   afterZoomIn?: (() => void) | undefined
   afterZoomOut?: (() => void) | undefined
@@ -34,7 +31,6 @@ export type IImageTypes = {
   bounds: DOMRect | Record<string, number>
   offsets: ICoordinateObject
   ratios: ICoordinateObject
-  eventPosition: ICoordinateObject
   scaledDimensions: { width: number; height: number }
   wasDragging: boolean
   velocity: { vx: number; vy: number } | null
@@ -62,8 +58,19 @@ export type IBaseImageTypes = {
   sources?: ImageSource[]
   width?: number
   height?: number
-  hasSpacer?: boolean
   imgAttributes?: React.ImgHTMLAttributes<HTMLImageElement>
   isZoomed?: boolean
   fadeDuration?: number
+}
+
+export type InertiaOptions = {
+  initialLeft: number
+  initialTop: number
+  velocity: { vx: number; vy: number }
+  setLeft: (left: number) => void
+  setTop: (top: number) => void
+  bounds: { minLeft: number; maxLeft: number; minTop: number; maxTop: number }
+  friction?: number
+  minVelocity?: number
+  onEnd?: () => void
 }

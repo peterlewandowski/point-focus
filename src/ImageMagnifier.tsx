@@ -15,15 +15,12 @@ const ImageMagnifier = ({
   sources,
   width,
   height,
-  padding,
-  hasSpacer,
   imgAttributes = {},
   zoomSrc,
   zoomScale = 1,
   zoomPreload,
   fadeDuration = 150,
   hideCloseButton,
-  hideHint,
   className,
   afterZoomIn,
   afterZoomOut,
@@ -154,6 +151,7 @@ const ImageMagnifier = ({
     zoomedImgRef.current.setAttribute('height', scaledDimensions.height.toString())
 
     zoomContextRef.current.scaledDimensions = scaledDimensions
+
     zoomContextRef.current.bounds = getBounds(containerRef.current)
     zoomContextRef.current.ratios = getRatios(zoomContextRef.current.bounds as { width: number; height: number }, scaledDimensions)
 
@@ -260,7 +258,7 @@ const ImageMagnifier = ({
       data-movetype={moveType}
       aria-label='Zoom image Container'
       className={containerClass}
-      style={{ width: width, height: height, padding: padding }}
+      style={{ width: width, height: height }}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseMove={isZoomed ? handleMouseMove : undefined}
@@ -270,7 +268,6 @@ const ImageMagnifier = ({
         sources={sources}
         width={width}
         height={height}
-        hasSpacer={hasSpacer}
         imgAttributes={imgAttributes}
         fadeDuration={fadeDuration}
         isZoomed={isZoomed}

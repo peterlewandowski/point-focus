@@ -1,14 +1,5 @@
-type InertiaOptions = {
-  initialLeft: number
-  initialTop: number
-  velocity: { vx: number; vy: number }
-  setLeft: (left: number) => void
-  setTop: (top: number) => void
-  bounds: { minLeft: number; maxLeft: number; minTop: number; maxTop: number }
-  friction?: number
-  minVelocity?: number
-  onEnd?: () => void
-}
+import { InertiaOptions } from '../ImageMagnifier.types'
+import { clampToBounds } from './globalUtils'
 
 export function startInertia({
   initialLeft,
@@ -38,18 +29,17 @@ export function startInertia({
     top += vy * (1 / 60)
 
     // Clamp to bounds
-    left = clamp(left, bounds.minLeft, bounds.maxLeft)
-    top = clamp(top, bounds.minTop, bounds.maxTop)
-
-    setLeft(left)
-    setTop(top)
+    const clamped = clampToBounds(left, top, bounds)
+    setLeft(clamped.left)
+    setTop(clamped.top)
 
     if (Math.abs(vx) > minVelocity || Math.abs(vy) > minVelocity) {
       requestAnimationFrame(step)
     } else {
-      // Snap to bounds one last time, if needed
-      setLeft(clamp(left, bounds.minLeft, bounds.maxLeft))
-      setTop(clamp(top, bounds.minTop, bounds.maxTop))
+      // Snap to bounds one last time
+      const finalClamped = clampToBounds(left, top, bounds)
+      setLeft(finalClamped.left)
+      setTop(finalClamped.top)
       if (onEnd) onEnd()
     }
   }
