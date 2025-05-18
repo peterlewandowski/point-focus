@@ -1,5 +1,6 @@
 import { IImageTypes } from '../ImageMagnifier.types'
 
+// Defaulted values to 0 to make the functions SSR safe
 export const getPageCoords = (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } => {
   return {
     x: (e as React.MouseEvent).pageX,
@@ -7,13 +8,15 @@ export const getPageCoords = (e: React.MouseEvent | React.TouchEvent): { x: numb
   }
 }
 
-export const getOffsets = (pageX: number, pageY: number, left: number, top: number) => ({
-  x: pageX - left,
-  y: pageY - top,
-})
+export const getOffsets = (pageX: number, pageY: number, left: number, top: number) => {
+  return {
+    x: pageX - left,
+    y: pageY - top,
+  }
+}
 
 export const getBounds = (container: HTMLDivElement | null): DOMRect | { width: number; height: number; left: number; top: number } => {
-   return container ? container.getBoundingClientRect() :  { width: 0, height: 0, left: 0, top: 0 }
+  return container ? container.getBoundingClientRect() : { width: 0, height: 0, left: 0, top: 0 }
 }
 
 export const getRatios = (bounds: { width: number; height: number }, dimensions: { width: number; height: number }) => {
@@ -23,7 +26,23 @@ export const getRatios = (bounds: { width: number; height: number }, dimensions:
   }
 }
 
+export function clampToBounds(left: number, top: number, bounds: { minLeft: number; maxLeft: number; minTop: number; maxTop: number }) {
+  return {
+    left: Math.max(Math.min(left, bounds.maxLeft), bounds.minLeft),
+    top: Math.max(Math.min(top, bounds.maxTop), bounds.minTop),
+  }
+}
+export function calculateDragPosition(pageX: number, pageY: number, offsets: { x: number; y: number }) {
+  return {
+    left: pageX - offsets.x,
+    top: pageY - offsets.y,
+  }
+}
+
 export const getScaledDimensions = (zoomedImgRef: HTMLImageElement, zoomScale: number) => {
+  if (!zoomedImgRef || !zoomedImgRef.naturalWidth || !zoomedImgRef.naturalHeight) {
+    return { width: 0, height: 0 }
+  }
   return {
     width: zoomedImgRef.naturalWidth * zoomScale,
     height: zoomedImgRef.naturalHeight * zoomScale,
@@ -37,9 +56,11 @@ export const getDefaults = (): IImageTypes => {
     bounds: { width: 0, height: 0, left: 0, top: 0 },
     offsets: defaultCoordinates,
     ratios: defaultCoordinates,
-    eventPosition: defaultCoordinates,
     scaledDimensions: { width: 0, height: 0 },
     dragStartCoords: defaultCoordinates,
     wasDragging: false,
+    velocity: { vx: 0, vy: 0 },
+    prevDragCoords: { x: 0, y: 0, time: 0 },
+    lastDragCoords: { x: 0, y: 0, time: 0 },
   }
 }

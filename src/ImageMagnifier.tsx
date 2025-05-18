@@ -1,13 +1,12 @@
 import React from 'react'
 import { getBounds, getDefaults, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
-import { applyMouseMove, initializePanZoomPosition } from './utils/followUtils'
+import { applyMouseMove, initializeFollowZoomPosition } from './utils/followUtils'
 import { IImageMagnifierTypes, IImageTypes, IZoomImageTypes } from './ImageMagnifier.types'
 import styles from './styles.module.scss'
 
 import BaseImage from './components/BaseImage'
 import ZoomImage from './components/ZoomImage'
-import { animateTo } from './utils/animations'
-import { animations } from './utils/animation.constants'
+import { startInertia } from './utils/animations'
 
 const ImageMagnifier = ({
   moveType = 'follow',
@@ -16,15 +15,12 @@ const ImageMagnifier = ({
   sources,
   width,
   height,
-  padding,
-  hasSpacer,
   imgAttributes = {},
   zoomSrc,
   zoomScale = 1,
   zoomPreload,
   fadeDuration = 150,
   hideCloseButton,
-  hideHint,
   className,
   afterZoomIn,
   afterZoomOut,
@@ -43,7 +39,7 @@ const ImageMagnifier = ({
 
   const zoomIn = (pageX: number, pageY: number) => {
     setIsZoomed(true)
-    initializePanZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop)
+    initializeFollowZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop)
     afterZoomIn && afterZoomIn()
   }
 
@@ -77,7 +73,12 @@ const ImageMagnifier = ({
   const handleDragMove = (e: MouseEvent) => {
     if (!isDragging) return
 
-    zoomContextRef.current.wasDragging = true
+    const now = Date.now()
+    const x = e.clientX
+    const y = e.clientY
+
+    zoomContextRef.current.prevDragCoords = zoomContextRef.current.lastDragCoords
+    zoomContextRef.current.lastDragCoords = { x, y, time: now }
 
     // Retrieve dragStartCoords from zoomContextRef
     const { x: offsetX, y: offsetY } = zoomContextRef.current.dragStartCoords
@@ -104,26 +105,42 @@ const ImageMagnifier = ({
     setIsDragging(false)
     zoomContextRef.current.dragStartCoords = { x: 0, y: 0 }
 
-    // Calculate clamped (in-bounds) position
+    // Animation on end
+    // Calculate velocity
+    const last = zoomContextRef.current.lastDragCoords
+    const prev = zoomContextRef.current.prevDragCoords
+
+    let vx = 0,
+      vy = 0
+    if (last && prev) {
+      const dt = (last.time - prev.time) / 1000
+      if (dt > 0) {
+        vx = (last.x - prev.x) / dt
+        vy = (last.y - prev.y) / dt
+      }
+    }
+    zoomContextRef.current.velocity = { vx, vy }
+
+    // Calculate bounds
     const { width, height } = zoomContextRef.current.bounds
     const maxLeft = 0
     const minLeft = width * -zoomContextRef.current.ratios.x
     const maxTop = 0
     const minTop = height * -zoomContextRef.current.ratios.y
 
-    const clampedLeft = Math.max(Math.min(left, maxLeft), minLeft)
-    const clampedTop = Math.max(Math.min(top, maxTop), minTop)
-
-    if (left !== clampedLeft || top !== clampedTop) {
-      animateTo(
-        { left, top },
-        { left: clampedLeft, top: clampedTop },
-        300, // duration in ms
-        animations.easeOut, // or any easing you like
-        setLeft,
-        setTop
-      )
-    }
+    startInertia({
+      initialLeft: left,
+      initialTop: top,
+      velocity: { vx, vy },
+      setLeft,
+      setTop,
+      bounds: { minLeft, maxLeft, minTop, maxTop },
+      friction: 0.95,
+      minVelocity: 10,
+      onEnd: () => {
+        // Optionally, snap to bounds or do something else
+      },
+    })
   }
 
   const applyImageLoad = (el: HTMLImageElement) => {
@@ -134,6 +151,7 @@ const ImageMagnifier = ({
     zoomedImgRef.current.setAttribute('height', scaledDimensions.height.toString())
 
     zoomContextRef.current.scaledDimensions = scaledDimensions
+
     zoomContextRef.current.bounds = getBounds(containerRef.current)
     zoomContextRef.current.ratios = getRatios(zoomContextRef.current.bounds as { width: number; height: number }, scaledDimensions)
 
@@ -158,9 +176,8 @@ const ImageMagnifier = ({
     }
 
     if (isZoomed) {
-      zoomOut()
       return
-    }
+    } // is important to keep it to avoid issues when dragging the image with the animation
 
     if (zoomedImgRef.current) {
       applyImageLoad(zoomedImgRef.current)
@@ -241,7 +258,7 @@ const ImageMagnifier = ({
       data-movetype={moveType}
       aria-label='Zoom image Container'
       className={containerClass}
-      style={{ width: width, height: height, padding: padding }}
+      style={{ width: width, height: height }}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseMove={isZoomed ? handleMouseMove : undefined}
@@ -251,7 +268,6 @@ const ImageMagnifier = ({
         sources={sources}
         width={width}
         height={height}
-        hasSpacer={hasSpacer}
         imgAttributes={imgAttributes}
         fadeDuration={fadeDuration}
         isZoomed={isZoomed}
