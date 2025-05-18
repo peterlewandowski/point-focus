@@ -69,7 +69,6 @@ Please see the [issues page](https://github.com/aperdomoll90/point-focus/issues)
 ## 📄 License
 
 This project is licensed under the MIT License.  
-See the [LICENSE](./LICENSE) file for details.
 
 ## 📞 Contact
 
