@@ -1,27 +1,58 @@
 export type ImageSource = React.SourceHTMLAttributes<HTMLSourceElement>
 
 export interface IImageMagnifierTypes {
-  moveType?: 'follow' | 'drag' | 'pinch'
-  zoomType?: 'click' | 'hover'
-  buttonScale?: number
+  // Core
   src: string
   sources?: ImageSource[]
   width?: number | undefined
   height?: number | undefined
+  zoomSrc?: string | undefined
+  zoomScale?: number | undefined
+  zoomPreload?: boolean | undefined
+  fadeDuration?: number | undefined
+  moveType?: 'follow' | 'drag' | 'pinch'
+  zoomType?: 'click' | 'hover'
+
+  // State control
+  isZoomed?: boolean | undefined
+  defaultZoomed?: boolean | undefined
+  onZoomChange?: (zoomed: boolean) => void | undefined
+
+  // Styling
+  containerClassName?: string | undefined
+  baseImageClassName?: string | undefined
+  zoomImageClassName?: string | undefined
+  closeButtonClassName?: string | undefined
+
+  // Accessibility
+  alt?: string
+  zoomAlt?: string
+  containerAriaLabel?: string
+  closeButtonAriaLabel?: string
+  zoomImageAriaLabel?: string
+  tabIndex?: number
+
+  // Customization
+  hideCloseButton?: boolean | undefined
+  closeButton?: React.ReactNode | undefined
+  overlay?: React.ReactNode | undefined
   imgAttributes?:
     | (React.ImgHTMLAttributes<HTMLImageElement> & {
         [key: `data-${string}`]: unknown
       })
     | undefined
-  zoomSrc?: string | undefined
-  zoomScale?: number | undefined
-  zoomPreload?: boolean | undefined
-  fadeDuration?: number | undefined
-  hideCloseButton?: boolean | undefined
-  className?: string | undefined
+
+  // Callbacks
+  onOpen?: (() => void) | undefined
+  onClose?: (() => void) | undefined
   afterZoomIn?: (() => void) | undefined
   afterZoomOut?: (() => void) | undefined
-  ref?: React.MutableRefObject<HTMLDivElement | null> | undefined
+
+  // Advanced
+  disableDrag?: boolean;
+  disableInertia?: boolean;
+  loadingPlaceholder?: React.ReactNode;
+  errorPlaceholder?: React.ReactNode;
 }
 
 type ICoordinateObject = { x: number; y: number }
@@ -51,6 +82,8 @@ export type IZoomImageTypes = {
   closeButtonRef: React.RefObject<HTMLButtonElement>
   onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void | undefined
   onDragEnd?: (e: React.MouseEvent | React.TouchEvent) => void | undefined
+  onTouchStart: (e: React.MouseEvent | React.TouchEvent) => void
+  onTouchEnd: (e: React.MouseEvent | React.TouchEvent) => void
 }
 
 export type IBaseImageTypes = {

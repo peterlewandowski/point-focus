@@ -7,7 +7,7 @@
 - **SSR Friendly:** Works seamlessly with Next.js, Gatsby, and other SSR frameworks.
 - **Customizable Zoom:** Choose between click or hover to activate zoom.
 - **Smooth Drag & Inertia:** Natural, momentum-based dragging experience.
-- **Responsive & Touch Ready:** Works beautifully on desktop and mobile devices.
+- **Responsive & Touch Ready:** Works beautifully on desktop and mobile devices. On touch devices, drag-to-pan is always enabled for the zoomed image, regardless of configuration.
 - **Accessible:** Keyboard and ARIA support for inclusive user experiences.
 - **Easy Styling:** Modern, modular CSS/SCSS for effortless customization.
 - **Lightweight:** No external dependencies except React.
@@ -68,7 +68,7 @@ Please see the [issues page](https://github.com/aperdomoll90/point-focus/issues)
 
 ## 📄 License
 
-This project is licensed under the MIT License.  
+This project is licensed under the MIT License.
 
 ## 📞 Contact
 
@@ -92,7 +92,7 @@ Project Link: [https://github.com/aperdomoll90/point-focus](https://github.com/a
        Option for the zoomed area to follow the user's mouse pointer.
 
 - [x] **Touch & Mobile Support**  
-       Works seamlessly on mobile devices with touch gesture support.
+      Drag-to-pan is always enabled on touch devices for a natural mobile experience. Pinch-to-zoom is planned for a future update.
 
 - [x] **Keyboard Accessibility**  
        Full keyboard navigation and ARIA support.
@@ -134,12 +134,6 @@ Project Link: [https://github.com/aperdomoll90/point-focus](https://github.com/a
 
 - [ ] **Animated zoom transitions and more easing options**  
        More customizable and smoother zoom-in/out animations.
-
-- [ ] **Custom overlay or modal support**  
-       Display the zoomed image in a modal/lightbox overlay.
-
-- [ ] **Gallery or carousel integration**  
-       Navigate between multiple images with zoom enabled.
 
 - [ ] **Advanced accessibility features**  
        Enhanced screen reader support and more granular keyboard navigation.

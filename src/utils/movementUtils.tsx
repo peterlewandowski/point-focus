@@ -41,3 +41,32 @@ export const initializeFollowZoomPosition = (
 
   applyMouseMove(pageX, pageY, zoomContextRef, setLeft, setTop)
 }
+
+export function applyDragMove(
+  x: number,
+  y: number,
+  zoomContextRef: React.MutableRefObject<IImageTypes>,
+  setLeft: (val: number) => void,
+  setTop: (val: number) => void
+) {
+
+  // This is setting up the animation
+  const now = Date.now()
+  zoomContextRef.current.prevDragCoords = zoomContextRef.current.lastDragCoords
+  zoomContextRef.current.lastDragCoords = { x, y, time: now }
+
+  // Calculate new position using the stored offset
+  const { left: newLeft, top: newTop } = calculateDragPosition(x, y, zoomContextRef.current.dragStartCoords)
+
+  // Clamp to bounds
+  const { width, height } = zoomContextRef.current.bounds
+  const maxLeft = 0
+  const minLeft = width * -zoomContextRef.current.ratios.x
+  const maxTop = 0
+  const minTop = height * -zoomContextRef.current.ratios.y
+
+  const clamped = clampToBounds(newLeft, newTop, { minLeft, maxLeft, minTop, maxTop })
+
+  setLeft(clamped.left)
+  setTop(clamped.top)
+}

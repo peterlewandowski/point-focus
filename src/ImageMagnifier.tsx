@@ -1,6 +1,6 @@
 import React from 'react'
-import { getBounds, getDefaults, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
-import { applyMouseMove, initializeFollowZoomPosition } from './utils/followUtils'
+import { getBounds, getDefaults, getOffsets, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
+import { applyMouseMove, initializeFollowZoomPosition, applyDragMove } from './utils/movementUtils'
 import { IImageMagnifierTypes, IImageTypes, IZoomImageTypes } from './ImageMagnifier.types'
 import styles from './styles.module.scss'
 
@@ -9,19 +9,19 @@ import ZoomImage from './components/ZoomImage'
 import { startInertia } from './utils/animations'
 
 const ImageMagnifier = ({
-  moveType = 'follow',
-  zoomType = 'click',
   src,
   sources,
   width,
   height,
-  imgAttributes = {},
   zoomSrc,
   zoomScale = 1,
   zoomPreload,
   fadeDuration = 150,
+  moveType = 'follow',
+  zoomType = 'click',
+  imgAttributes = {},
   hideCloseButton,
-  className,
+  containerClassName,
   afterZoomIn,
   afterZoomOut,
 }: IImageMagnifierTypes) => {
@@ -51,54 +51,17 @@ const ImageMagnifier = ({
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isZoomed) return
 
-    // Mouse event
-    if ('clientX' in e && 'clientY' in e) {
-      setIsDragging(true)
-      zoomContextRef.current.dragStartCoords = {
-        x: e.clientX - left,
-        y: e.clientY - top,
-      }
-    }
-
-    if ('touches' in e && e.touches.length === 1) {
-      setIsDragging(true)
-      const touch = e.touches[0]
-      zoomContextRef.current.dragStartCoords = {
-        x: touch.clientX - left,
-        y: touch.clientY - top,
-      }
-    }
+    const { x, y } = getPageCoords(e)
+    setIsDragging(true)
+    zoomContextRef.current.dragStartCoords = getOffsets(x, y, left, top)
   }
 
-  const handleDragMove = (e: MouseEvent) => {
+  const handleDragMove = (e: MouseEvent | TouchEvent) => {
     if (!isDragging) return
 
-    const now = Date.now()
-    const x = e.clientX
-    const y = e.clientY
-
-    zoomContextRef.current.prevDragCoords = zoomContextRef.current.lastDragCoords
-    zoomContextRef.current.lastDragCoords = { x, y, time: now }
-
-    // Retrieve dragStartCoords from zoomContextRef
-    const { x: offsetX, y: offsetY } = zoomContextRef.current.dragStartCoords
-
-    // Calculate new position using the stored offset
-    let newLeft = e.clientX - offsetX
-    let newTop = e.clientY - offsetY
-
-    // Clamp to bounds
-    const { width, height } = zoomContextRef.current.bounds
-    const maxLeft = 0
-    const minLeft = width * -zoomContextRef.current.ratios.x
-    const maxTop = 0
-    const minTop = height * -zoomContextRef.current.ratios.y
-
-    newLeft = Math.max(Math.min(newLeft, maxLeft), minLeft)
-    newTop = Math.max(Math.min(newTop, maxTop), minTop)
-
-    setLeft(newLeft)
-    setTop(newTop)
+    const { x, y } = getPageCoords(e)
+    applyDragMove(x, y, zoomContextRef, setLeft, setTop)
+    if ('touches' in e) e.preventDefault?.()
   }
 
   const handleDragEnd = () => {
@@ -228,9 +191,13 @@ const ImageMagnifier = ({
     if (isDragging) {
       window.addEventListener('mousemove', handleDragMove)
       window.addEventListener('mouseup', handleDragEnd)
+      window.addEventListener('touchmove', handleDragMove, { passive: false })
+      window.addEventListener('touchend', handleDragEnd)
       return () => {
         window.removeEventListener('mousemove', handleDragMove)
         window.removeEventListener('mouseup', handleDragEnd)
+        window.removeEventListener('touchmove', handleDragMove)
+        window.removeEventListener('touchend', handleDragEnd)
       }
     }
   }, [isDragging])
@@ -244,12 +211,14 @@ const ImageMagnifier = ({
     onLoad: handleLoad,
     onDragStart: moveType === 'drag' ? handleDragStart : undefined,
     onDragEnd: moveType === 'drag' ? handleDragEnd : undefined,
+    onTouchStart: handleDragStart,
+    onTouchEnd: handleDragEnd,
     onClose: !hideCloseButton ? handleClose : undefined,
     onFadeOut: isFading ? handleFadeOut : undefined,
     closeButtonRef: closeButtonRef,
   }
 
-  const containerClass = [styles['c-point-focus'], className].filter(Boolean).join(' ')
+  const containerClass = [styles['c-point-focus'], containerClassName].filter(Boolean).join(' ')
 
   return (
     <figure
