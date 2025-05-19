@@ -1,12 +1,22 @@
 import React from 'react'
-import { getBounds, getDefaults, getOffsets, getPageCoords, getRatios, getScaledDimensions } from './utils/globalUtils'
+import {
+  getBounds,
+  getDefaults,
+  getOffsets,
+  getPageCoords,
+  getRatios,
+  getScaledDimensions,
+  isTouchEvent,
+  ZoomFallbackBoundary,
+} from './utils/globalUtils'
 import { applyMouseMove, initializeFollowZoomPosition, applyDragMove } from './utils/movementUtils'
-import { IImageMagnifierTypes, IImageTypes, IZoomImageTypes } from './ImageMagnifier.types'
+import { IImageMagnifierTypes, IImageTypes, IInteractionTYpe, IZoomImageTypes } from './ImageMagnifier.types'
 import styles from './styles.module.scss'
 
 import BaseImage from './components/BaseImage'
 import ZoomImage from './components/ZoomImage'
 import { startInertia } from './utils/animations'
+import { FallbackImage } from './assets/svgCollection'
 
 const ImageMagnifier = ({
   src,
@@ -51,6 +61,7 @@ const ImageMagnifier = ({
   clickToZoomOut = false,
   externalZoomState,
   setExternalZoomState,
+  disableMobile,
 }: IImageMagnifierTypes) => {
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const closeButtonRef = React.useRef<HTMLButtonElement | null>(null)
@@ -75,10 +86,10 @@ const ImageMagnifier = ({
     }
   }
 
-  const zoomIn = (pageX: number, pageY: number) => {
+  const zoomIn = (pageX: number, pageY: number, method: IInteractionTYpe) => {
     updateZoomState(true)
     initializeFollowZoomPosition(pageX, pageY, containerRef.current, zoomContextRef, setLeft, setTop)
-    onZoom?.()
+    onZoom?.({ at: { x: pageX, y: pageY }, method: method })
 
     setTimeout(() => {
       closeButtonRef.current?.focus()
@@ -102,27 +113,33 @@ const ImageMagnifier = ({
     updateZoomState(false)
   }
 
-  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isZoomed || disableDrag) return
+  const handleDragStart = React.useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      if (!isZoomed || disableDrag || (disableMobile && isTouchEvent(e))) return
+      const { x, y } = getPageCoords(e)
+      setIsDragging(true)
+      zoomContextRef.current.dragStartCoords = getOffsets(x, y, left, top)
+      onDragStart?.({
+        start: { x, y },
+        source: isTouchEvent(e) ? 'touch' : 'mouse',
+      })
+    },
+    [isZoomed, disableDrag, disableMobile, left, top, onDragStart]
+  )
 
-    const { x, y } = getPageCoords(e)
-    setIsDragging(true)
-    zoomContextRef.current.dragStartCoords = getOffsets(x, y, left, top)
-    onDragStart?.()
-  }
+  const handleDragMove = React.useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      if (!isDragging) return
+      const { x, y } = getPageCoords(e)
+      applyDragMove(x, y, zoomContextRef, setLeft, setTop)
+      if ('touches' in e) e.preventDefault?.()
+    },
+    [isDragging, setLeft, setTop]
+  )
 
-  const handleDragMove = (e: MouseEvent | TouchEvent) => {
-    if (!isDragging) return
-
-    const { x, y } = getPageCoords(e)
-    applyDragMove(x, y, zoomContextRef, setLeft, setTop)
-    if ('touches' in e) e.preventDefault?.()
-  }
-
-  const handleDragEnd = () => {
+  const handleDragEnd = React.useCallback(() => {
     setIsDragging(false)
     zoomContextRef.current.dragStartCoords = { x: 0, y: 0 }
-    onDragEnd?.()
 
     // Animation on end
     // Calculate velocity
@@ -162,7 +179,11 @@ const ImageMagnifier = ({
         },
       })
     }
-  }
+    onDragEnd?.({
+      velocity: { vx, vy },
+      final: { x: left, y: top },
+    })
+  }, [disableInertia, left, top, setLeft, setTop, onDragEnd])
 
   const applyImageLoad = (el: HTMLImageElement) => {
     const scaledDimensions = getScaledDimensions(el, zoomScale)
@@ -182,96 +203,149 @@ const ImageMagnifier = ({
     }
   }
 
-  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    applyImageLoad(e.currentTarget)
-    afterZoomImgLoaded?.()
-  }
+  const handleLoad = React.useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      applyImageLoad(e.currentTarget)
+      afterZoomImgLoaded?.()
+    },
+    [applyImageLoad, afterZoomImgLoaded]
+  )
 
-  const handleClose = (e: React.MouseEvent | React.TouchEvent) => {
-    onClose?.()
-    zoomOut()
-  }
-
-  const handleClick = (e: React.MouseEvent | React.TouchEvent) => {
-    onClickImage?.()
-    if (zoomContextRef.current.wasDragging) {
-      zoomContextRef.current.wasDragging = false
-      return
-    }
-
-    if (isZoomed) {
-      if (clickToZoomOut) {
-        zoomOut()
-      }
-      return
-    } // is important to keep it to avoid issues when dragging the image with the animation
-
-    if (zoomedImgRef.current) {
-      applyImageLoad(zoomedImgRef.current)
-      const { x, y } = getPageCoords(e)
-      zoomIn(x, y)
-    } else {
-      const { x, y } = getPageCoords(e)
-      zoomContextRef.current.onLoadCallback = () => zoomIn(x, y)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ') && !isZoomed) {
-      e.preventDefault()
-      const { x, y } = getPageCoords(e, containerRef.current)
-      zoomIn(x, y)
-    }
-
-    if (e.key === 'Escape' && isZoomed) {
-      e.preventDefault()
+  const handleClose = React.useCallback(
+    (method: IInteractionTYpe) => {
+      onClose?.({ triggeredBy: method })
       zoomOut()
-    }
-  }
+    },
+    [onClose, zoomOut]
+  )
 
-  const handleZoomLayerKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape' && isZoomed) {
-      e.preventDefault()
-      zoomOut()
-    }
-  }
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent | React.TouchEvent, method: IInteractionTYpe) => {
+      if (disableMobile && isTouchEvent(e)) return
 
-  const handleMouseEnter = (e: React.MouseEvent) => {
-    setIsActive(true)
-    setIsFading(false)
-    onMouseEnter?.()
-    if (zoomType === 'hover' && !isZoomed) {
-      handleClick(e)
-    }
-  }
+      const { x, y } = getPageCoords(e)
+      onClickImage?.({ x, y, source: isTouchEvent(e) ? 'touch' : 'mouse' })
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    onZoomedMouseMove?.()
-    if (moveType === 'follow' && isZoomed) {
-      applyMouseMove(e.pageX, e.pageY, zoomContextRef, setLeft, setTop)
-    }
-  }
-
-  const handleMouseLeave = (e: React.MouseEvent) => {
-    onMouseLeave?.()
-    handleClose(e)
-  }
-
-  const handleFadeOut = (e: any, noTransition?: boolean) => {
-    if (noTransition || (e.propertyName === 'opacity' && containerRef?.current?.contains(e.target))) {
-      if (!zoomPreload) {
-        zoomedImgRef.current = null
-        zoomContextRef.current = getDefaults()
-        setIsActive(false)
+      if (zoomContextRef.current.wasDragging) {
+        zoomContextRef.current.wasDragging = false
+        return
       }
+
+      if (isZoomed) {
+        if (clickToZoomOut) {
+          handleClose(method)
+        }
+        return
+      } // is important to keep it to avoid issues when dragging the image with the animation
+
+      if (zoomedImgRef.current) {
+        applyImageLoad(zoomedImgRef.current)
+        zoomIn(x, y, method)
+      } else {
+        zoomContextRef.current.onLoadCallback = () => zoomIn(x, y, method)
+      }
+    },
+    [disableMobile, isTouchEvent, getPageCoords, onClickImage, isZoomed, clickToZoomOut, handleClose, applyImageLoad, zoomIn]
+  )
+
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      if ((e.key === 'Enter' || e.key === ' ') && !isZoomed) {
+        e.preventDefault()
+        const { x, y } = getPageCoords(e, containerRef.current)
+        zoomIn(x, y, 'keyboard')
+      }
+
+      if (e.key === 'Escape' && isZoomed) {
+        e.preventDefault()
+        handleClose('keyboard')
+      }
+    },
+    [isZoomed, getPageCoords, zoomIn, handleClose]
+  )
+
+  const handleZoomLayerKeyDown = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape' && isZoomed) {
+        e.preventDefault()
+        handleClose('keyboard')
+      }
+    },
+    [isZoomed, handleClose]
+  )
+
+  const throttledZoomedMouseMove = React.useCallback(
+    (x: number, y: number, bounds: DOMRect) => {
+      zoomContextRef.current.lastMoveEvent = { x, y, bounds }
+      if (zoomContextRef.current.rafId == null) {
+        zoomContextRef.current.rafId = window.requestAnimationFrame(() => {
+          const evt = zoomContextRef.current.lastMoveEvent
+          if (evt && onZoomedMouseMove) {
+            onZoomedMouseMove(evt)
+          }
+          zoomContextRef.current.rafId = null
+        })
+      }
+    },
+    [onZoomedMouseMove]
+  )
+
+  const handleMouseEnter = React.useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      setIsActive(true)
       setIsFading(false)
-      afterZoomOut?.()
-    }
-  }
+      onMouseEnter?.({ source: isTouchEvent(e) ? 'touch' : 'mouse' })
+      if (zoomType === 'hover' && !isZoomed && !(disableMobile && isTouchEvent(e))) {
+        handleClick(e, 'hover')
+      }
+    },
+    [setIsActive, setIsFading, onMouseEnter, zoomType, isZoomed, disableMobile, handleClick]
+  )
+  const handleMouseMove = React.useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      if (moveType === 'follow' && isZoomed) {
+        const { x, y } = getPageCoords(e)
+        const bounds = zoomContextRef.current.bounds as DOMRect
+        if (!bounds || typeof bounds.left !== 'number') return
+        throttledZoomedMouseMove(x, y, zoomContextRef.current.bounds as DOMRect)
+        applyMouseMove(x, y, zoomContextRef, setLeft, setTop)
+      }
+    },
+    [moveType, isZoomed, throttledZoomedMouseMove, setLeft, setTop]
+  )
+
+  const handleMouseLeave = React.useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      onMouseLeave?.({ source: isTouchEvent(e) ? 'touch' : 'mouse' })
+      handleClose('hover')
+    },
+    [onMouseLeave, handleClose]
+  )
+
+  const handleFadeOut = React.useCallback(
+    (e?: React.TransitionEvent<HTMLImageElement> | TransitionEvent, noTransition?: boolean) => {
+      if (noTransition || (e && 'propertyName' in e && e.propertyName === 'opacity' && containerRef?.current?.contains(e.target as Node))) {
+        if (!zoomPreload) {
+          zoomedImgRef.current = null
+          zoomContextRef.current = getDefaults()
+          setIsActive(false)
+        }
+        setIsFading(false)
+        afterZoomOut?.()
+      }
+    },
+    [zoomPreload, setIsActive, setIsFading, afterZoomOut]
+  )
 
   // possibly extra to be removed
   React.useEffect(() => {
     zoomContextRef.current = getDefaults()
+    return () => {
+      if (zoomContextRef.current.rafId != null) {
+        cancelAnimationFrame(zoomContextRef.current.rafId)
+        zoomContextRef.current.rafId = null
+      }
+    }
   }, [])
 
   React.useEffect(() => {
@@ -327,7 +401,12 @@ const ImageMagnifier = ({
       aria-label={containerAriaLabel ?? 'Zoomable image'}
       className={containerClass}
       style={{ width: width, height: height }}
-      onClick={handleClick}
+      onClick={e => handleClick(e, 'hover')}
+      onTouchStart={e => {
+        if (disableMobile) {
+          e.preventDefault()
+        }
+      }}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       onMouseMove={isZoomed ? handleMouseMove : undefined}
@@ -351,7 +430,9 @@ const ImageMagnifier = ({
               {overlay}
             </div>
           )}
-          <ZoomImage key={isZoomed && clickToZoomOut ? 'zoomed' : 'unzoomed'} ref={zoomedImgRef} {...zoomImageProps} />
+          <ZoomFallbackBoundary fallback={errorPlaceholder ?? <FallbackImage />}>
+            <ZoomImage key={isZoomed && clickToZoomOut ? 'zoomed' : 'unzoomed'} ref={zoomedImgRef} {...zoomImageProps} />
+          </ZoomFallbackBoundary>
         </>
       )}
     </figure>

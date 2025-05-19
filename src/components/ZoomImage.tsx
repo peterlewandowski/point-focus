@@ -1,7 +1,7 @@
 import React from 'react'
 import { IZoomImageTypes } from '../ImageMagnifier.types'
 import styles from '../styles.module.scss'
-import { CloseIcon } from '../assets/CloseIcon'
+import { CloseIcon, FallbackImage } from '../assets/svgCollection'
 
 const ZoomImage = React.forwardRef<HTMLImageElement, IZoomImageTypes>(
   (
@@ -81,15 +81,15 @@ const ZoomImage = React.forwardRef<HTMLImageElement, IZoomImageTypes>(
           tabIndex={0}
         />
 
-        {hasError && errorPlaceholder && isZoomed && (
+        {hasError && isZoomed && (
           <div className={styles['c-point-focus__placeholder']} data-testid='pf-zoom-error'>
-            {errorPlaceholder}
+            {errorPlaceholder ?? <FallbackImage />}
           </div>
         )}
 
-        {isLoading && !hasError && loadingPlaceholder && isZoomed && (
+        {isLoading && !hasError && isZoomed && (
           <div className={styles['c-point-focus__placeholder']} data-testid='pf-zoom-loading'>
-            {loadingPlaceholder}
+            {loadingPlaceholder ?? <span className={styles['c-point-focus__loader']} />}
           </div>
         )}
 
@@ -106,7 +106,7 @@ const ZoomImage = React.forwardRef<HTMLImageElement, IZoomImageTypes>(
             style={{
               transition: `opacity ${fadeDuration}ms linear, visibility ${fadeDuration}ms linear`,
             }}
-            onClick={onClose}
+            onClick={() => onClose?.('click')}
             onKeyDown={onKeyDown}>
             {closeButtonContent ?? <CloseIcon />}
           </button>

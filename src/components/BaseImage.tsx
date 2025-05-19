@@ -1,6 +1,7 @@
 import React from 'react'
 import { IBaseImageTypes } from '../ImageMagnifier.types'
 import styles from '../styles.module.scss'
+import { FallbackImage } from '../assets/svgCollection'
 
 const BaseImage = ({
   src,
@@ -16,6 +17,11 @@ const BaseImage = ({
 }: IBaseImageTypes) => {
   const [isLoading, setIsLoading] = React.useState(true)
   const [hasError, setHasError] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsLoading(true)
+    setHasError(false)
+  }, [src])
 
   const handleLoad = () => setIsLoading(false)
 
@@ -35,7 +41,7 @@ const BaseImage = ({
 
   const imageClass = [styles['c-point-focus__img'], baseImageClassName].filter(Boolean).join(' ')
 
-  const imgElement = (
+  const imgElement = !hasError ? (
     <img
       alt={alt}
       src={src}
@@ -46,7 +52,7 @@ const BaseImage = ({
       data-hidden={isZoomed}
       data-testid='pf-base-image'
     />
-  )
+  ) : null
 
   return (
     <>
@@ -63,15 +69,15 @@ const BaseImage = ({
         imgElement
       )}
 
-      {isLoading && loadingPlaceholder && (
-        <div className={styles['c-point-focus__placeholder']} data-testid='pf-base-loading'>
-          {loadingPlaceholder}
+      {isLoading && (
+        <div className={styles['c-point-focus__placeholder']} style={{ zIndex: 0 }} data-testid='pf-base-loading'>
+          {loadingPlaceholder ?? <FallbackImage />}
         </div>
       )}
 
-      {hasError && errorPlaceholder && (
-        <div className={styles['c-point-focus__placeholder']} data-testid='pf-base-error'>
-          {errorPlaceholder}
+      {hasError && (
+        <div className={styles['c-point-focus__placeholder']} style={{ zIndex: 0 }} data-testid='pf-base-error'>
+          {errorPlaceholder ?? <FallbackImage />}
         </div>
       )}
     </>

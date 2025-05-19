@@ -1,5 +1,7 @@
 export type ImageSource = React.SourceHTMLAttributes<HTMLSourceElement>
 
+export type IInteractionTYpe = 'click' | 'hover' | 'keyboard' | 'external'
+
 export interface IImageMagnifierTypes {
   // Core
   src: string
@@ -38,20 +40,21 @@ export interface IImageMagnifierTypes {
   baseImageStyle?: React.CSSProperties | undefined
 
   // Callbacks
-  onMouseEnter?: (() => void) | undefined
-  onMouseLeave?: (() => void) | undefined
-  onClickImage?: (() => void) | undefined
-  onZoom?: (() => void) | undefined
-  onClose?: (() => void) | undefined
-  afterZoomImgLoaded?: (() => void) | undefined
-  afterZoomOut?: (() => void) | undefined
-  onBaseImageError?: (() => void) | undefined
-  onZoomImageError?: (() => void) | undefined
-  onDragStart?: (() => void) | undefined
-  onDragEnd?: (() => void) | undefined
-  onZoomedMouseMove?: (() => void) | undefined
+  onMouseEnter?: (info: { source: 'mouse' | 'touch' }) => void
+  onMouseLeave?: (info: { source: 'mouse' | 'touch' }) => void
+  onClickImage?: (info: { x: number; y: number; source: 'mouse' | 'touch' }) => void
+  onZoom?: (info: { at: { x: number; y: number }; method: IInteractionTYpe }) => void
+  onClose?: (info: { triggeredBy: IInteractionTYpe }) => void
+  afterZoomImgLoaded?: () => void
+  afterZoomOut?: () => void
+  onBaseImageError?: () => void
+  onZoomImageError?: () => void
+  onDragStart?: (info: { start: { x: number; y: number }; source: 'mouse' | 'touch' }) => void
+  onDragEnd?: (info: { velocity: { vx: number; vy: number }; final: { x: number; y: number } }) => void
+  onZoomedMouseMove?: (info: { x: number; y: number; bounds: DOMRect }) => void
 
   // Advanced
+  disableMobile?: boolean
   disableDrag?: boolean
   disableInertia?: boolean
   loadingPlaceholder?: React.ReactNode
@@ -71,6 +74,8 @@ export type IImageTypes = {
   dragStartCoords: ICoordinateObject
   prevDragCoords: { x: number; y: number; time: number } | null
   lastDragCoords: { x: number; y: number; time: number } | null
+  rafId?: number | null
+  lastMoveEvent?: { x: number; y: number; bounds: DOMRect  } | null
 }
 
 export type IZoomImageTypes = {
@@ -81,7 +86,7 @@ export type IZoomImageTypes = {
   isZoomed: boolean
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void
   onError?: () => void
-  onClose?: (e: React.MouseEvent) => void
+  onClose?: (method: IInteractionTYpe) => void
   onFadeOut?: (e: React.TransitionEvent<HTMLImageElement>) => void
   closeButtonRef: React.RefObject<HTMLButtonElement>
   onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void | undefined
@@ -124,4 +129,13 @@ export type InertiaOptions = {
   friction?: number
   minVelocity?: number
   onEnd?: () => void
+}
+
+export type ZoomFallbackBoundaryProps = {
+  fallback: React.ReactNode
+  children: React.ReactNode
+}
+
+export type ZoomFallbackBoundaryState = {
+  hasError: boolean
 }
