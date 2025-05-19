@@ -14,9 +14,9 @@ export interface IImageMagnifierTypes {
   zoomType?: 'click' | 'hover'
 
   // State control
-  isZoomed?: boolean | undefined
-  defaultZoomed?: boolean | undefined
-  onZoomChange?: (zoomed: boolean) => void | undefined
+  externalZoomState?: boolean | undefined
+  setExternalZoomState?: (value: boolean) => void | undefined
+  clickToZoomOut?: boolean | undefined
 
   // Styling
   containerClassName?: string | undefined
@@ -25,8 +25,7 @@ export interface IImageMagnifierTypes {
   closeButtonClassName?: string | undefined
 
   // Accessibility
-  alt?: string
-  zoomAlt?: string
+  alt: string
   containerAriaLabel?: string
   closeButtonAriaLabel?: string
   zoomImageAriaLabel?: string
@@ -34,25 +33,29 @@ export interface IImageMagnifierTypes {
 
   // Customization
   hideCloseButton?: boolean | undefined
-  closeButton?: React.ReactNode | undefined
+  closeButtonContent?: React.ReactNode | undefined
   overlay?: React.ReactNode | undefined
-  imgAttributes?:
-    | (React.ImgHTMLAttributes<HTMLImageElement> & {
-        [key: `data-${string}`]: unknown
-      })
-    | undefined
+  baseImageStyle?: React.CSSProperties | undefined
 
   // Callbacks
-  onOpen?: (() => void) | undefined
+  onMouseEnter?: (() => void) | undefined
+  onMouseLeave?: (() => void) | undefined
+  onClickImage?: (() => void) | undefined
+  onZoom?: (() => void) | undefined
   onClose?: (() => void) | undefined
-  afterZoomIn?: (() => void) | undefined
+  afterZoomImgLoaded?: (() => void) | undefined
   afterZoomOut?: (() => void) | undefined
+  onBaseImageError?: (() => void) | undefined
+  onZoomImageError?: (() => void) | undefined
+  onDragStart?: (() => void) | undefined
+  onDragEnd?: (() => void) | undefined
+  onZoomedMouseMove?: (() => void) | undefined
 
   // Advanced
-  disableDrag?: boolean;
-  disableInertia?: boolean;
-  loadingPlaceholder?: React.ReactNode;
-  errorPlaceholder?: React.ReactNode;
+  disableDrag?: boolean
+  disableInertia?: boolean
+  loadingPlaceholder?: React.ReactNode
+  errorPlaceholder?: React.ReactNode
 }
 
 type ICoordinateObject = { x: number; y: number }
@@ -77,6 +80,7 @@ export type IZoomImageTypes = {
   left: number
   isZoomed: boolean
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement>) => void
+  onError?: () => void
   onClose?: (e: React.MouseEvent) => void
   onFadeOut?: (e: React.TransitionEvent<HTMLImageElement>) => void
   closeButtonRef: React.RefObject<HTMLButtonElement>
@@ -84,6 +88,15 @@ export type IZoomImageTypes = {
   onDragEnd?: (e: React.MouseEvent | React.TouchEvent) => void | undefined
   onTouchStart: (e: React.MouseEvent | React.TouchEvent) => void
   onTouchEnd: (e: React.MouseEvent | React.TouchEvent) => void
+  zoomImageClassName?: string | undefined
+  closeButtonClassName?: string | undefined
+  alt: string
+  closeButtonAriaLabel?: string
+  zoomImageAriaLabel?: string
+  onKeyDown: (e: React.KeyboardEvent) => void
+  closeButtonContent?: React.ReactNode | undefined
+  loadingPlaceholder?: React.ReactNode
+  errorPlaceholder?: React.ReactNode
 }
 
 export type IBaseImageTypes = {
@@ -91,9 +104,14 @@ export type IBaseImageTypes = {
   sources?: ImageSource[]
   width?: number
   height?: number
-  imgAttributes?: React.ImgHTMLAttributes<HTMLImageElement>
+  baseImageClassName?: string
+  baseImageStyle?: React.CSSProperties
   isZoomed?: boolean
   fadeDuration?: number
+  alt: string
+  loadingPlaceholder?: React.ReactNode
+  errorPlaceholder?: React.ReactNode
+  onError?: (() => void) | undefined
 }
 
 export type InertiaOptions = {

@@ -1,11 +1,20 @@
 import { IImageTypes } from '../ImageMagnifier.types'
 
 // Defaulted values to 0 to make the functions SSR safe
-export const getPageCoords = (e: React.MouseEvent | React.TouchEvent | MouseEvent | TouchEvent): { x: number; y: number } => {
+export const getPageCoords = (
+  e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent | React.KeyboardEvent | KeyboardEvent,
+  fallbackElement?: HTMLElement | null
+): { x: number; y: number } => {
   if ('touches' in e && e.touches.length > 0) {
     return { x: e.touches[0].pageX, y: e.touches[0].pageY }
   } else if ('pageX' in e && 'pageY' in e) {
-    return { x: (e as React.MouseEvent).pageX, y: (e as React.MouseEvent).pageY }
+    return { x: e.pageX, y: e.pageY }
+  } else if (fallbackElement) {
+    const rect = fallbackElement.getBoundingClientRect()
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    }
   }
   return { x: 0, y: 0 }
 }
