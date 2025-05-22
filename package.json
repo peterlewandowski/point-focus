@@ -12,12 +12,17 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "rollup -c rollup.config.cjs",
     "scss:types": "typed-scss-modules src --includePaths src",
-    "scss:watch": "typed-scss-modules src --includePaths src --watch"
+    "scss:watch": "typed-scss-modules src --includePaths src --watch",
+    "release:patch": "npm version patch && npm publish --access public",
+    "release:minor": "npm version minor && npm publish --access public",
+    "release:major": "npm version major && npm publish --access public"
   },
   "keywords": [
     "react",
@@ -27,8 +32,22 @@
     "lens",
     "component",
     "tsx",
+    "point-focus",
     "image-zoom",
-    "hover-zoom"
+    "zoom-image",
+    "image-magnifier",
+    "image-gallery",
+    "product-image-zoom",
+    "click-to-zoom",
+    "drag-to-zoom",
+    "hover-zoom",
+    "touch-zoom",
+    "typescript",
+    "responsive-image",
+    "ecommerce",
+    "accessibility",
+    "customizable",
+    "touch-friendly"
   ],
   "author": "Adrian Perdomo Llerena",
   "license": "MIT",

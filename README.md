@@ -1,186 +1,141 @@
 # 🚀 point-focus
 
-**point-focus** is a modern, highly customizable, and SSR-friendly React image magnifier and zoom component. Effortlessly add interactive zoom, drag, and pan capabilities to your images-perfect for product galleries, portfolios, or any application that demands a closer look. Designed for performance, accessibility, and seamless integration into any React project.
+**point-focus** is a modern, highly customizable, and SSR-friendly React image magnifier and zoom component. Add intuitive zoom, drag, and pan capabilities to your images—ideal for product galleries, portfolios, or any app that demands detailed inspection. Designed with performance, accessibility, and developer experience in mind.
 
 ## ✨ Features
 
-- **SSR Friendly:** Works seamlessly with Next.js, Gatsby, and other SSR frameworks.
-- **Customizable Zoom:** Choose between click or hover to activate zoom.
-- **Smooth Drag & Inertia:** Natural, momentum-based dragging experience.
-- **Responsive & Touch Ready:** Works beautifully on desktop and mobile devices. On touch devices, drag-to-pan is always enabled for the zoomed image, regardless of configuration.
-- **Accessible:** Keyboard and ARIA support for inclusive user experiences.
+- **SSR Friendly** – Seamlessly compatible with Next.js, Gatsby, and other server-rendering frameworks.
+- **Click, Hover, or Programmatic Zoom Activation** – Fully customizable interaction types.
+- **Smooth Drag & Inertia** – Physics-based panning with momentum.
+- **Responsive & Touch Ready** – Optimized for both desktop and mobile experiences.
+- **Accessible** – Full ARIA support and keyboard navigation.
+- **Custom Loading & Error UI** – Placeholders for both base and zoomed images.
+- **External Zoom State Control** – Fully controlled or uncontrolled behavior.
 - **Easy Styling:** Modern, modular CSS/SCSS for effortless customization.
-- **Lightweight:** No external dependencies except React.
+- **Lightweight** – No external dependencies except React.
 
-## 🛠️ Technologies Used
+## 🛠️ Technologies
 
-- **React** – Modern JavaScript UI library
-- **TypeScript** – Type-safe development
-- **SASS/SCSS** – Modular and maintainable styling
+- **React** – Declarative UI
+- **TypeScript** – Safer development
+- **SCSS Modules** – Scoped styling
 
-**Requirements:**
-
-- React 17 or newer
-- Node.js and npm/yarn
+**Requirements:**  
+- React 17+
+- Node.js with npm or yarn
 
 ## ⚙️ Installation
 
-Install with npm or yarn:
-
-`npm install point-focus `
-
-or
-
-`yarn add point-focus`
+```bash
+npm install point-focus
+# or
+yarn add point-focus
+```
 
 ## 🚀 Usage
 
-Import and use the component in your React app:
+```tsx
+import ImageMagnifier from 'point-focus'
 
-`import ImageMagnifier from 'point-focus' function Example() { return ( <ImageMagnifier src="/images/sample.jpg" zoomSrc="/images/sample-large.jpg" width={400} height={300} zoomScale={2} fadeDuration={300} moveType="drag" zoomType="click" afterZoomIn={() => console.log('Zoomed in!')} afterZoomOut={() => console.log('Zoomed out!')} /> ) }`
+function Example() {
+  return (
+    <ImageMagnifier
+      src="/images/sample.jpg"
+      zoomSrc="/images/sample-large.jpg"
+      moveType="drag"
+      zoomType="click"
+      alt='Image alt'
+      zoomScale={2}
+    />
+  )
+}
+```
 
-**Basic Props:**
+## 🔧 Props Overview
 
-| Prop           | Type     | Default  | Description                           |
-| -------------- | -------- | -------- | ------------------------------------- |
-| `src`          | string   | required | Main image source                     |
-| `zoomSrc`      | string   | optional | High-res image for zoom               |
-| `width`        | number   | optional | Container width                       |
-| `height`       | number   | optional | Container height                      |
-| `zoomScale`    | number   | 1        | Magnification scale                   |
-| `fadeDuration` | number   | 150      | Fade-in/out duration (ms)             |
-| `moveType`     | string   | 'follow' | 'follow', 'drag', or 'pinch' movement |
-| `zoomType`     | string   | 'click'  | 'click' or 'hover' to activate zoom   |
-| `afterZoomIn`  | function | optional | Callback after zoom in                |
-| `afterZoomOut` | function | optional | Callback after zoom out               |
+| Prop                    | Type                          | Default     | Description |
+|-------------------------|-------------------------------|-------------|-------------|
+| `src`                   | `string`                      | — (required) | Main image source |
+| `zoomSrc`               | `string`                      | `src`       | High-res zoom source |
+| `sources`               | `array`                       | —           | `<source>` tags for `<picture>` |
+| `width` / `height`      | `number`                      | —           | Container dimensions |
+| `zoomScale`             | `number`                      | `1`         | Magnification ratio |
+| `zoomPreload`           | `boolean`                     | `false`     | Preload zoom image on mount |
+| `fadeDuration`          | `number`                      | `150`       | Animation duration in ms |
+| `moveType`              | `'follow' | 'drag' | 'pinch'` | `'follow'`  | Pan behavior during zoom |
+| `zoomType`              | `'click' | 'hover'`           | `'click'`   | How zoom is activated |
+| `clickToZoomOut`        | `boolean`                     | `false`     | Allow clicking image to zoom out |
+| `hideCloseButton`       | `boolean`                     | `false`     | Hide zoom-close button |
+| `alt`                   | `string`                      | `''`        | Alt text for both images |
+| `tabIndex`              | `number`                      | `0`         | Keyboard navigation index |
+| `containerClassName`    | `string`                      | —           | Extra class for the wrapper |
+| `baseImageClassName`    | `string`                      | —           | Extra class for the base image |
+| `zoomImageClassName`    | `string`                      | —           | Extra class for zoom image |
+| `closeButtonClassName`  | `string`                      | —           | Custom class for close button |
+| `containerAriaLabel`    | `string`                      | —           | Accessibility label for container |
+| `zoomImageAriaLabel`    | `string`                      | —           | ARIA label for zoom image |
+| `closeButtonAriaLabel`  | `string`                      | —           | ARIA label for close button |
+| `closeButtonContent`    | `ReactNode`                   | `X` icon    | Replace the default close icon |
+| `overlay`               | `ReactNode`                   | —           | Optional overlay inside zoom container |
+| `loadingPlaceholder`    | `ReactNode`                   | —           | Shown while zoom image loads |
+| `errorPlaceholder`      | `ReactNode`                   | —           | Shown if zoom image fails |
+| `externalZoomState`     | `boolean`                     | —           | For controlled zoom state |
+| `setExternalZoomState`  | `(val: boolean) => void`      | —           | Setter for external zoom state |
+| `onMouseEnter`          | `() => void`                  | —           | Called on hover enter |
+| `onMouseLeave`          | `() => void`                  | —           | Called on hover leave |
+| `onClickImage`          | `() => void`                  | —           | Called when image is clicked |
+| `onZoom`                | `() => void`                  | —           | Called when zoom starts |
+| `onClose`               | `() => void`                  | —           | Called when zoom closes |
+| `afterZoomImgLoaded`    | `() => void`                  | —           | Called when zoom image loads |
+| `afterZoomOut`          | `() => void`                  | —           | Called after zoom exits |
+| `onBaseImageError`      | `() => void`                  | —           | Called if base image fails to load |
+| `onZoomImageError`      | `() => void`                  | —           | Called if zoom image fails to load |
+| `onDragStart`           | `() => void`                  | —           | Called on drag start |
+| `onDragEnd`             | `() => void`                  | —           | Called on drag end |
+
+## 🧭 Roadmap
+
+### ✅ Already Implemented
+- SSR support (Next.js, Gatsby)
+- Click or hover zoom trigger
+- Follow mouse or drag pan
+- Inertia and momentum
+- Touch & mobile compatibility
+- Custom placeholders (loading/error)
+- Close button toggle
+- External zoom state (controlled usage)
+- ARIA and keyboard support
+- Custom class names for styling
+- `picture` element support for responsive images
+- Custom overlays, labels, and alt text
+- Programmatic zoom positioning setup via `onLoadCallback`
+
+### 🚧 Planned Features
+- [ ] **Pinch-to-zoom** for touch devices  
+- [ ] **Zoom lens / magnifier glass** effect  
+- [ ] **Zoom on scroll / mouse wheel**  
+- [ ] **Double-click or double-tap to zoom**  
+- [ ] **Animated transitions with easing customization**  
+- [ ] **Programmatic zoom in/out methods**  
+- [ ] **Granular keyboard navigation**  
+- [ ] **Fallback UI for broken zoom images**
+- [ ] **Built-in modal/lightbox integration**
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
+PRs and issues welcome!
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/YourFeature`)
-3. Commit your changes (`git commit -m 'Add some feature'`)
-4. Push to the branch (`git push origin feature/YourFeature`)
+1. Fork it
+2. Create a branch (`git checkout -b feature/myFeature`)
+3. Commit your changes
+4. Push to your branch
 5. Open a pull request
-
-Please see the [issues page](https://github.com/aperdomoll90/point-focus/issues) for open issues and feature requests.
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+MIT License.
 
 ## 📞 Contact
 
-Your Name – Adrian Perdomo
-Project Link: [https://github.com/aperdomoll90/point-focus](https://github.com/aperdomoll90/point-focus)
-
-## 🗺️ Roadmap of Implemented and Planned Features
-
-### ✅ Implemented Features
-
-- [x] **SSR Support**  
-       Fully compatible with server-side rendering frameworks like Next.js and Gatsby.
-
-- [x] **Customizable Zoom Activation**  
-       Zoom can be triggered by click or hover.
-
-- [x] **Drag & Inertia**  
-       Drag the zoomed image with smooth, momentum-based movement.
-
-- [x] **Follow Mouse Movement**  
-       Option for the zoomed area to follow the user's mouse pointer.
-
-- [x] **Touch & Mobile Support**  
-      Drag-to-pan is always enabled on touch devices for a natural mobile experience. Pinch-to-zoom is planned for a future update.
-
-- [x] **Keyboard Accessibility**  
-       Full keyboard navigation and ARIA support.
-
-- [x] **Customizable Scale & Animation**  
-       Easily adjust zoom scale and fade animation duration.
-
-- [x] **Responsive & Flexible**  
-       Adapts to various container sizes and image aspect ratios.
-
-- [x] **High-Resolution Zoom Support**  
-       Use a separate, high-resolution image for the zoomed view.
-
-- [x] **Customizable Styles**  
-       Modern default styles, easily overridden with your own CSS/SCSS.
-
-- [x] **Callback Hooks**  
-       `afterZoomIn` and `afterZoomOut` props for custom event handling.
-
-- [x] **Hideable Close Button**  
-       Option to show or hide the close button in zoom mode.
-
-### 🚧 Planned / Missing Features
-
-- [ ] **Pinch-to-zoom gesture for mobile**  
-       Support for intuitive pinch-in and pinch-out gestures to zoom with two fingers on touch devices[2][3][4][5].
-
-- [ ] **Wheel zoom support**  
-       Allow users to zoom in and out using the mouse wheel.
-
-- [ ] **Double-click/double-tap to zoom**  
-       Enable zooming with a double-click (desktop) or double-tap (mobile).
-
-- [ ] **Zoom on scroll**  
-       Support zooming in/out with mouse scroll or trackpad gestures.
-
-- [ ] **Zoom lens or magnifier glass effect**  
-       Movable lens that magnifies a portion of the image instead of full-image zoom.
-
-- [ ] **Animated zoom transitions and more easing options**  
-       More customizable and smoother zoom-in/out animations.
-
-- [ ] **Advanced accessibility features**  
-       Enhanced screen reader support and more granular keyboard navigation.
-
-- [ ] **Error handling and fallback UI**  
-       Custom components or messages if the zoom image fails to load.
-
-- [ ] **Customizable loading states**  
-       Spinners or placeholders while high-res images load.
-
-- [ ] **Programmatic control**  
-       Methods or props to programmatically trigger zoom in/out from parent components.
-
-## ❓ FAQ
-
-### How do I apply zoom to a specific image or gallery?
-
-You can apply zoom by simply using the `<ImageMagnifier />` component and passing the desired image source as the `src` prop. For advanced integration, you can target specific images or galleries by wrapping them in the component or by using CSS selectors if you extend the functionality[5].
-
-### Can I use this with page builders or in custom layouts?
-
-Yes, you can use `point-focus` in any React-based layout, including custom grids, galleries, or even with page builder frameworks. Just import and use the component where needed in your JSX[5].
-
-### Is it possible to use a zoom lens or magnifier glass effect?
-
-Currently, `point-focus` supports full-image zoom with drag and inertia. A movable lens or magnifier glass effect is planned for future releases (see Roadmap)[1].
-
-### Does it support touch and mobile devices?
-
-Yes, touch and mobile support is implemented, including drag and tap-to-zoom features. Pinch-to-zoom is planned for a future update.
-
-### How do I customize the zoom behavior?
-
-You can control activation (click or hover), zoom scale, animation duration, and more via component props. See the Usage section for examples.
-
-### What happens if the zoom image fails to load?
-
-At the moment, there is no custom error handling or fallback UI. This feature is planned for a future release.
-
-### Can I use this in a modal or overlay?
-
-Yes, the component can be rendered inside a modal or overlay. Dedicated modal integration and lightbox support are planned for future versions.
-
-### Is programmatic control available?
-
-Not yet. Programmatic zoom in/out methods are on the roadmap.
-
----
-
-For more questions, feature requests, or troubleshooting, please open an issue on the [GitHub repository](https://github.com/aperdomoll90/point-focus/issues).
+**Adrian Perdomo**  
+GitHub: [aperdomoll90/point-focus](https://github.com/aperdomoll90/point-focus)
