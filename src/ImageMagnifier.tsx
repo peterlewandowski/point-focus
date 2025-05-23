@@ -78,6 +78,8 @@ const ImageMagnifier = ({
   const [left, setLeft] = React.useState<number>(0)
   const [top, setTop] = React.useState<number>(0)
 
+  const safeZoomScale = Math.max(1, Math.min(zoomScale, 5))
+
   const updateZoomState = (val: boolean) => {
     if (isControlled) {
       setExternalZoomState?.(val)
@@ -186,16 +188,22 @@ const ImageMagnifier = ({
   }, [disableInertia, left, top, setLeft, setTop, onDragEnd])
 
   const applyImageLoad = (el: HTMLImageElement) => {
-    const scaledDimensions = getScaledDimensions(el, zoomScale)
+    const naturalDimensions = {
+      width: el.naturalWidth,
+      height: el.naturalHeight,
+    }
+
+    const bounds = getBounds(containerRef.current)
 
     zoomedImgRef.current = el
-    zoomedImgRef.current.setAttribute('width', scaledDimensions.width.toString())
-    zoomedImgRef.current.setAttribute('height', scaledDimensions.height.toString())
 
-    zoomContextRef.current.scaledDimensions = scaledDimensions
+    zoomContextRef.current.scaledDimensions = {
+      width: naturalDimensions.width * safeZoomScale,
+      height: naturalDimensions.height * safeZoomScale,
+    }
 
-    zoomContextRef.current.bounds = getBounds(containerRef.current)
-    zoomContextRef.current.ratios = getRatios(zoomContextRef.current.bounds as { width: number; height: number }, scaledDimensions)
+    zoomContextRef.current.bounds = bounds
+    zoomContextRef.current.ratios = getRatios(bounds, naturalDimensions, safeZoomScale)
 
     if (zoomContextRef.current.onLoadCallback) {
       zoomContextRef.current.onLoadCallback()
@@ -387,6 +395,7 @@ const ImageMagnifier = ({
     closeButtonContent: closeButtonContent,
     loadingPlaceholder: loadingPlaceholder,
     errorPlaceholder: errorPlaceholder,
+    zoomScale: safeZoomScale,
   }
 
   const containerClass = [styles['c-point-focus'], containerClassName].filter(Boolean).join(' ')

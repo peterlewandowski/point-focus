@@ -41,10 +41,16 @@ export const getBounds = (container: HTMLDivElement | null): DOMRect | { width: 
   return container ? container.getBoundingClientRect() : { width: 0, height: 0, left: 0, top: 0 }
 }
 
-export const getRatios = (bounds: { width: number; height: number }, dimensions: { width: number; height: number }): PageCoords => {
+export const getRatios = (
+  bounds: { width: number; height: number },
+  natural: { width: number; height: number },
+  zoomScale: number
+): PageCoords => {
+  const scaledWidth = natural.width * zoomScale
+  const scaledHeight = natural.height * zoomScale
   return {
-    x: (dimensions.width - bounds.width) / bounds.width,
-    y: (dimensions.height - bounds.height) / bounds.height,
+    x: (scaledWidth - bounds.width) / bounds.width,
+    y: (scaledHeight - bounds.height) / bounds.height,
   }
 }
 

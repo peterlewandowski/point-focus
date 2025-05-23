@@ -15,6 +15,7 @@ const BaseImage = ({
   errorPlaceholder,
   onError,
 }: IBaseImageTypes) => {
+  const imgRef = React.useRef<HTMLImageElement | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [hasError, setHasError] = React.useState(false)
 
@@ -23,13 +24,24 @@ const BaseImage = ({
     setHasError(false)
   }, [src])
 
-  const handleLoad = () => setIsLoading(false)
+  const handleLoad = () => {
+    console.log('Image loaded')
+    setIsLoading(false)
+  }
 
   const handleError = () => {
     setHasError(true)
     setIsLoading(false)
+    console.error('Image has error')
     onError?.()
   }
+
+  React.useEffect(() => {
+  const img = imgRef.current
+  if (img && img.complete && img.naturalWidth > 0) {
+    setIsLoading(false)
+  }
+}, [src])
 
   const imageStyle = React.useMemo(
     () => ({
@@ -43,6 +55,7 @@ const BaseImage = ({
 
   const imgElement = !hasError ? (
     <img
+      ref={imgRef}
       alt={alt}
       src={src}
       style={imageStyle}
@@ -69,7 +82,7 @@ const BaseImage = ({
         imgElement
       )}
 
-      {isLoading && (
+      {isLoading && !hasError && (
         <div className={styles['c-point-focus__placeholder']} style={{ zIndex: 0 }} data-testid='pf-base-loading'>
           {loadingPlaceholder ?? <FallbackImage />}
         </div>

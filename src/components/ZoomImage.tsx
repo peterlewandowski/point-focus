@@ -29,6 +29,7 @@ const ZoomImage = React.forwardRef<HTMLImageElement, IZoomImageTypes>(
       onError,
       loadingPlaceholder,
       errorPlaceholder,
+      zoomScale,
     },
     ref
   ) => {
@@ -63,7 +64,8 @@ const ZoomImage = React.forwardRef<HTMLImageElement, IZoomImageTypes>(
           data-visible={isZoomed}
           className={zoomImgClass}
           style={{
-            transform: `translate(${left}px, ${top}px)`,
+            transform: `translate(${left}px, ${top}px)  scale(${zoomScale})`,
+            transformOrigin: 'top left',
             transition: `opacity ${fadeDuration}ms linear, visibility ${fadeDuration}ms linear`,
           }}
           src={src}
