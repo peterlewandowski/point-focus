@@ -75,7 +75,7 @@ export type IImageTypes = {
   prevDragCoords: { x: number; y: number; time: number } | null
   lastDragCoords: { x: number; y: number; time: number } | null
   rafId?: number | null
-  lastMoveEvent?: { x: number; y: number; bounds: DOMRect  } | null
+  lastMoveEvent?: { x: number; y: number; bounds: DOMRect } | null
 }
 
 export type IZoomImageTypes = {
@@ -102,6 +102,7 @@ export type IZoomImageTypes = {
   closeButtonContent?: React.ReactNode | undefined
   loadingPlaceholder?: React.ReactNode
   errorPlaceholder?: React.ReactNode
+  zoomScale: number
 }
 
 export type IBaseImageTypes = {
