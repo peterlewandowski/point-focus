@@ -1,6 +1,6 @@
 {
   "name": "point-focus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A React component for zooming and focusing on image points via click, drag, or cursor.",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
